@@ -82,9 +82,9 @@ def serve_slide_asset(filename):
     return send_from_directory(SLIDES_DIR, filename)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run the Slide Presenter Flask app.")
-    parser.add_argument('--slidedir', type=str,
-                        help='Specify the directory containing slide files (e.g., --slidedir=my_slides)',
+    parser = argparse.ArgumentParser(description="Run the SelfHosted Slide Presenter app.")
+    parser.add_argument('--slide-dir', type=str,
+                        help='Specify the directory containing slide files (e.g., --slide-dir=my_slides)',
                         default=None)
     args = parser.parse_args()
 

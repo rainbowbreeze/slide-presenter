@@ -1,6 +1,6 @@
-# Slide Presenter
+# SelfHosted Slide Presenter
 
-Slide Presenter is a lightweight, file-based presentation tool that runs in your web browser. It generates a slideshow from simple text or Markdown files, allowing you to focus on your content.
+SelfHosted Slide Presenter is a lightweight, file-based presentation tool that runs in your web browser. It generates a slideshow from simple text or Markdown files, allowing you to focus on your content.
 
 ## Features
 

@@ -1,10 +1,10 @@
-# Gemini Project Overview: Slide Presenter
+# Gemini Project Overview: SelfHosted Slide Presenter
 
-This document provides a high-level overview of the Slide Presenter application, its architecture, and guidelines for maintaining project documentation.
+This document provides a high-level overview of the SelfHosted Slide Presenter application, its architecture, and guidelines for maintaining project documentation.
 
 ## Project Description
 
-Slide Presenter is a lightweight, file-based presentation tool. It runs as a local web server using Python and Flask, rendering presentations in a web browser. Slides are generated from simple text (`.txt`) and Markdown (`.md`) files, allowing for rapid content creation and a focus on the material being presented.
+SelfHosted Slide Presenter is a lightweight, file-based presentation tool. It runs as a local web server using Python and Flask, rendering presentations in a web browser. Slides are generated from simple text (`.txt`) and Markdown (`.md`) files, allowing for rapid content creation and a focus on the material being presented.
 
 The core features include:
 -   A web-based interface for viewing presentations.
