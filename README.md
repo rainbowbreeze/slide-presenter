@@ -6,7 +6,7 @@ Slide Presenter is a lightweight, file-based presentation tool that runs in your
 
 -   **Web-Based:** Runs a local Python web server. View your presentation in any modern web browser.
 -   **File-Based:** Slides are created from simple `.txt` and `.md` files.
--   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file.
+-   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file. The footer is displayed on content slides, but hidden on section and image slides.
 -   **Slide Types:** Supports section title slides, content slides with Markdown, and full-screen image slides.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **Dynamic Reload:** Update your slide files and reload the presentation instantly with a keypress.
@@ -62,7 +62,7 @@ This is a list of items:
 
 #### Image Slide
 
-Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides/` directory.
+Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides/` directory and are served directly from there.
 
 *Example with a remote image:*
 ```

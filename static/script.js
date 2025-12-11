@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 slideContainer.classList.add('image-slide');
                 let imageUrl = slide.is_remote_image ? slide.content : `/slides/${slide.content}`;
                 slideContainer.style.backgroundImage = `url('${imageUrl}')`;
+                footer.style.display = 'none';
                 break;
         }
         if (slide.type !== 'image') {

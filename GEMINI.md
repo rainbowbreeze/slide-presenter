@@ -13,6 +13,7 @@ The core features include:
 -   Support for different slide types: section titles, Markdown content, and full-screen images.
 -   Keyboard and mouse navigation.
 -   Dynamic reloading of slide content.
+-   The presentation footer is displayed on content slides, but hidden on section and image slides.
 
 ## Architecture
 
@@ -27,6 +28,7 @@ The application follows a simple client-server model:
         1.  Reads and parses slide files (`.md`, `.txt`) from the `slides/` directory.
         2.  Reads a `template.json` for theming information.
         3.  Returns a JSON payload containing the structured slide data and template configuration.
+    -   `/slides/<path:filename>`: Serves static assets (like local images) from the configured `SLIDES_DIR`.
 -   **Content Directory:** The `slides/` directory (with `slides_demo/` as a fallback) holds all user-facing content, including slide files and the theme template.
 
 ### Frontend
