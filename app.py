@@ -28,7 +28,7 @@ def parse_slide_file(filename):
                 "is_remote_image": False,
             }
 
-        if first_line.startswith(('http://', 'https://')) or first_line.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        if first_line.startswith(('http://', 'https://')) or first_line.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
             return {
                 "type": "image",
                 "content": first_line,
