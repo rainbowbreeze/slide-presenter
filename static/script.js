@@ -63,9 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'image':
                 slideContainer.classList.add('image-slide');
                 let imageUrl = slide.is_remote_image ? slide.content : `/slides/${slide.content}`;
-                if (!slide.is_remote_image) {
-                    imageUrl = slide.content;
-                }
                 slideContainer.style.backgroundImage = `url('${imageUrl}')`;
                 break;
         }

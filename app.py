@@ -1,7 +1,7 @@
 
 import os
 import json
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory
 
 app = Flask(__name__)
 
@@ -77,6 +77,10 @@ def get_slides():
         return jsonify({"error": str(e)}), 500
 
     return jsonify({"template": template, "slides": slides})
+
+@app.route('/slides/<path:filename>')
+def serve_slide_asset(filename):
+    return send_from_directory(SLIDES_DIR, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
