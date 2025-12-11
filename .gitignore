@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Distributions and packaging
+.Python
+build/
+dist/
+venv/
+env/
+.venv/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Logs and databases
+*.log
+*.sqlite3
+/var/
+
+# OS-generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# Flask specific
+instance/
+
+# Temporary files
+*.tmp
+*.bak

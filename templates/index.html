@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Presenter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="slide-container"></div>
+    <div id="footer"></div>
+    <div id="help-overlay" class="hidden">
+        <div class="help-content">
+            <h2>Controls</h2>
+            <table>
+                <tr>
+                    <td>Next Slide</td>
+                    <td><code>Right Arrow</code> / <code>D</code> / <code>Mouse Click</code></td>
+                </tr>
+                <tr>
+                    <td>Previous Slide</td>
+                    <td><code>Left Arrow</code> / <code>A</code></td>
+                </tr>
+                <tr>
+                    <td>Jump to Slide</td>
+                    <td><code>G</code> / <code>Right Click</code></td>
+                </tr>
+                <tr>
+                    <td>Reload Slides</td>
+                    <td><code>R</code></td>
+                </tr>
+                <tr>
+                    <td>Show/Hide Help</td>
+                    <td><code>H</code> (Show) / <code>Esc</code> (Hide)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>

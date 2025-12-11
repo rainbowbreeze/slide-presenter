@@ -1,0 +1,106 @@
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+#slide-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 5%;
+}
+
+.slide-content {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Slide Types */
+.section-slide {
+    text-align: center;
+}
+
+.section-slide h1 {
+    font-size: 4em;
+    margin: 0;
+}
+
+.content-slide {
+    text-align: left;
+    width: 90%;
+    height: 90%;
+}
+
+.content-slide h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+
+.content-slide ul, .content-slide ol {
+    font-size: 1.5em;
+}
+
+.content-slide p {
+    font-size: 1.5em;
+}
+
+
+.image-slide {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+#footer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #888;
+}
+
+#help-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#help-overlay.hidden {
+    display: none;
+}
+
+.help-content {
+    padding: 40px;
+    background: #333;
+    border-radius: 10px;
+}
+
+.help-content h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.help-content code {
+    background: #000;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
