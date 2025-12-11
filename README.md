@@ -116,7 +116,7 @@ Open your web browser and navigate to `http://127.0.0.1:5000` to see your presen
 | Action             | Key                                | Mouse              |
 | ------------------ | ---------------------------------- | ------------------ |
 | **Next Slide**     | `Right Arrow` / `Down Arrow` /     | Left-Click         |
-|                    | `D` / `Space`                      | Left-Click         |
+|                    | `D` / `Space`                      |                    |
 | **Previous Slide** | `Left Arrow` / `Up Arrow` / `A`    |                    |
 | **Jump to Slide**  | `G`                                | Right-Click        |
 | **Reload Slides**  | `R`                                |                    |
