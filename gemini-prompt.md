@@ -10,7 +10,7 @@ You are tasked with creating a simple, file-based slide presentation application
 The application consists of three main parts:
 1.  **Python Backend:** A Flask-based web server to serve the main page and provide slide data.
 2.  **Frontend:** An HTML page with CSS and JavaScript to render and control the presentation.
-3.  **Content:** Text or Markdown files in a `slides` (or `slides_demo`) directory that define the content of each slide.
+3.  **Content:** Text or Markdown files in `slides_demo` directory that define the content of each slide.
 
 ## Detailed Requirements
 
@@ -21,7 +21,7 @@ Create the following directory and file structure:
 ```
 /
 |-- app.py              # The main Python Flask application
-|-- slides/ (or slides_demo/)
+|-- slides_demo/
 |   |-- 001_intro.md
 |   |-- 002_section.txt
 |   |-- ... (other slide files)
@@ -36,12 +36,12 @@ Create the following directory and file structure:
 ### 2. Backend (app.py)
 
 -   **Framework:** Use Flask.
--   **Note:** If the `slides` directory does not exist, the application will use `slides_demo` as a fallback.
+-   **Command-line Arguments:** The script should accept a `--slide-dir` argument to specify the directory containing slide files. If not provided, it falls back to the default `slides_demo/` logic.
 -   **Endpoints:**
     -   `@app.route('/')`: This should render the `templates/index.html` page.
     -   `@app.route('/api/slides')`: This endpoint is the core of the backend. It should:
-        1.  Read the `slides/template.json` file.
-        2.  Scan the `slides/` directory for all `.txt` and `.md` files.
+        1.  Read the `slides_demo/template.json` file.
+        2.  Scan the `slides_demo/` directory for all `.txt` and `.md` files.
         3.  Sort the files alphabetically by name to determine the slide order.
         4.  For each file, parse it to determine the slide type and content.
         5.  Return a single JSON object containing two keys:
@@ -115,7 +115,7 @@ Create the following directory and file structure:
 
 -   **Error Handling:** Use `console.error()` to log any errors that occur during API fetching or rendering.
 
-### 4. `slides/template.json`
+### 4. `slides_demo/template.json`
 
 This file defines the visual theme. Provide a default example:
 

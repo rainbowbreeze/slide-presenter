@@ -27,7 +27,7 @@ Slide Presenter is a lightweight, file-based presentation tool that runs in your
     ```
 
 4.  **Directory Structure:** Create the following directories in your project root:
-    -   `slides/`: To store your slide content files and `template.json`.
+    -   `slides_demo/`: To store your slide content files and `template.json`.
     -   `static/`: To store the `script.js` and `style.css` files.
     -   `templates/`: To store the `index.html` file.
 
@@ -35,7 +35,7 @@ Slide Presenter is a lightweight, file-based presentation tool that runs in your
 
 ### 1. Create Slides
 
-Inside the `slides/` directory, create your slide files. The slides will be ordered alphabetically by filename (e.g., `0010_intro.md`, `0020_first_section.txt`, etc.).
+Inside the `slides_demo/` directory, create your slide files. The slides will be ordered alphabetically by filename (e.g., `0010_intro.md`, `0020_first_section.txt`, etc.).
 
 #### Section Slide
 
@@ -68,7 +68,7 @@ Supported markdown specs (from https://marked.js.org/#specifications):
 
 #### Image Slide
 
-Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides/` directory and are served directly from there.
+Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides_demo/` directory and are served directly from there.
 
 *Example with a remote image:*
 ```
@@ -82,7 +82,7 @@ https://via.placeholder.com/800x600
 
 ### 2. Customize Your Theme
 
-Edit the `slides/template.json` file to customize the look and feel of your presentation.
+Edit the `slides_demo/template.json` file to customize the look and feel of your presentation.
 
 ```json
 {
@@ -101,6 +101,12 @@ Execute the Python script from your project's root directory:
 
 ```bash
 python app.py
+```
+
+To specify a custom directory for your slides, use the `--slide-dir` argument:
+
+```bash
+python app.py --slide-dir=path/to/your/slides
 ```
 
 Open your web browser and navigate to `http://127.0.0.1:5000` to see your presentation.

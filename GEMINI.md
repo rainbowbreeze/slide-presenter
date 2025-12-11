@@ -25,11 +25,12 @@ The application follows a simple client-server model:
 -   **`app.py`:** The main application file. It contains two primary routes:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
-        1.  Reads and parses slide files (`.md`, `.txt`) from the `slides/` directory.
+        1.  Reads and parses slide files (`.md`, `.txt`) from the `SLIDES_DIR` directory.
         2.  Reads a `template.json` for theming information.
         3.  Returns a JSON payload containing the structured slide data and template configuration.
     -   `/slides/<path:filename>`: Serves static assets (like local images) from the configured `SLIDES_DIR`.
--   **Content Directory:** The `slides/` directory (with `slides_demo/` as a fallback) holds all user-facing content, including slide files and the theme template.
+-   **Command-line Arguments:** `app.py` accepts a `--slide-dir` argument to specify the directory containing slide files, overriding the default `slides_demo/` fallback.
+-   **Content Directory:** The `slides_demo/` directory holds all user-facing content, including slide files and the theme template. The directory used can be overridden by the `--slide-dir` command-line argument.
 
 ### Frontend
 

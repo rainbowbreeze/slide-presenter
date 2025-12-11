@@ -1,13 +1,12 @@
 
+import argparse
 import os
 import json
 from flask import Flask, render_template, jsonify, send_from_directory
 
 app = Flask(__name__)
 
-SLIDES_DIR = 'slides'
-if not os.path.isdir(SLIDES_DIR):
-    SLIDES_DIR = 'slides_demo'
+SLIDES_DIR = ''
 
 def parse_slide_file(filename):
     """Parses a slide file and returns a slide dictionary."""
@@ -83,4 +82,21 @@ def serve_slide_asset(filename):
     return send_from_directory(SLIDES_DIR, filename)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Run the Slide Presenter Flask app.")
+    parser.add_argument('--slidedir', type=str,
+                        help='Specify the directory containing slide files (e.g., --slidedir=my_slides)',
+                        default=None)
+    args = parser.parse_args()
+
+    # Use the provided slidedir, otherwise fall back to existing logic
+    if args.slidedir:
+        SLIDES_DIR = args.slidedir
+    else:
+        SLIDES_DIR = 'slides_demo'
+
+    # Verify that the SLIDES_DIR exists
+    if not os.path.isdir(SLIDES_DIR):
+        print(f"Error: Specified slide directory '{SLIDES_DIR}' does not exist.")
+        exit(1)
+
     app.run(debug=True)
