@@ -60,6 +60,12 @@ This is a list of items:
 - **Bolded** text.
 ```
 
+Supported markdown specs (from https://marked.js.org/#specifications):
+- Markdown 1.0: https://daringfireball.net/projects/markdown/syntax
+- CommonMark 0.31: http://spec.commonmark.org/
+- GitHub Flavored Markdown 0.29: https://help.github.com/articles/github-flavored-markdown/
+
+
 #### Image Slide
 
 Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides/` directory and are served directly from there.
