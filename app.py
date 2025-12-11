@@ -6,6 +6,8 @@ from flask import Flask, render_template, jsonify
 app = Flask(__name__)
 
 SLIDES_DIR = 'slides'
+if not os.path.isdir(SLIDES_DIR):
+    SLIDES_DIR = 'slides_demo'
 
 def parse_slide_file(filename):
     """Parses a slide file and returns a slide dictionary."""

@@ -10,7 +10,7 @@ You are tasked with creating a simple, file-based slide presentation application
 The application consists of three main parts:
 1.  **Python Backend:** A Flask-based web server to serve the main page and provide slide data.
 2.  **Frontend:** An HTML page with CSS and JavaScript to render and control the presentation.
-3.  **Content:** Text or Markdown files in a `slides` directory that define the content of each slide.
+3.  **Content:** Text or Markdown files in a `slides` (or `slides_demo`) directory that define the content of each slide.
 
 ## Detailed Requirements
 
@@ -21,7 +21,7 @@ Create the following directory and file structure:
 ```
 /
 |-- app.py              # The main Python Flask application
-|-- slides/
+|-- slides/ (or slides_demo/)
 |   |-- 001_intro.md
 |   |-- 002_section.txt
 |   |-- ... (other slide files)
@@ -36,6 +36,7 @@ Create the following directory and file structure:
 ### 2. Backend (app.py)
 
 -   **Framework:** Use Flask.
+-   **Note:** If the `slides` directory does not exist, the application will use `slides_demo` as a fallback.
 -   **Endpoints:**
     -   `@app.route('/')`: This should render the `templates/index.html` page.
     -   `@app.route('/api/slides')`: This endpoint is the core of the backend. It should:
