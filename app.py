@@ -89,7 +89,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Use the provided slidedir, otherwise fall back to existing logic
-    if args.slidedir:
+    if args.slide_dir:
         SLIDES_DIR = args.slidedir
     else:
         SLIDES_DIR = 'slides_demo'

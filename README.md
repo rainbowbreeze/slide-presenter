@@ -113,14 +113,30 @@ Open your web browser and navigate to `http://127.0.0.1:5000` to see your presen
 
 ## Controls
 
-| Action             | Key                         | Mouse              |
-| ------------------ | --------------------------- | ------------------ |
-| **Next Slide**     | `Right Arrow` / `D`         | Left-Click         |
-| **Previous Slide** | `Left Arrow` / `A`          |                    |
-| **Jump to Slide**  | `G`                         | Right-Click        |
-| **Reload Slides**  | `R`                         |                    |
-| **Show/Hide Help** | `H` (Show) / `Esc` (Hide)   |                    |
+| Action             | Key                                | Mouse              |
+| ------------------ | ---------------------------------- | ------------------ |
+| **Next Slide**     | `Right Arrow` / `Down Arrow` /     | Left-Click         |
+|                    | `D` / `Space`                      | Left-Click         |
+| **Previous Slide** | `Left Arrow` / `Up Arrow` / `A`    |                    |
+| **Jump to Slide**  | `G`                                | Right-Click        |
+| **Reload Slides**  | `R`                                |                    |
+| **Show/Hide Help** | `H` (Show) / `Esc` (Hide)          |                    |
 
 ---
 
 All errors during execution will be logged to the terminal where `app.py` is running and to the browser's JavaScript console.
+
+---
+
+## Open Source Libraries
+
+This project utilizes the following open-source libraries:
+
+*   **Flask**: A micro web framework for Python.
+    *   *Authors:* Armin Ronacher (creator) and the Flask Community.
+    *   *License:* BSD License.
+*   **Marked.js**: A markdown parser and compiler written in JavaScript.
+    *   *Author:* Troy Goode and contributors.
+    *   *License:* MIT License.
+
+We extend our sincere gratitude to the developers and communities behind these fantastic projects for their invaluable contributions to the open-source ecosystem.

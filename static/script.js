@@ -99,10 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         switch (e.key) {
             case 'ArrowRight':
+            case 'ArrowDown': // Added ArrowDown
             case 'd':
+            case ' ':
                 navigate(1);
                 break;
             case 'ArrowLeft':
+            case 'ArrowUp': // Added ArrowUp
             case 'a':
                 navigate(-1);
                 break;
