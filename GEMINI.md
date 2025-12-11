@@ -34,7 +34,7 @@ The application follows a simple client-server model:
 ### Frontend
 
 -   **`templates/index.html`:** The single HTML page that acts as the container for the presentation.
--   **`static/style.css`:** Provides the visual styling for the slides, including layout, fonts, and colors defined in the theme.
+-   **`static/style.css`:** Provides the visual styling for the slides, including layout, fonts, and colors defined in the theme. It also includes enhanced spacing for list items within content slides.
 -   **`static/script.js`:** The client-side logic that:
     1.  Fetches slide and theme data from the `/api/slides` endpoint.
     2.  Dynamically renders the slides based on their type (`section`, `content`, `image`).

@@ -48,6 +48,10 @@ body, html {
     font-size: 1.5em;
 }
 
+.content-slide li {
+    margin-bottom: 0.5em; /* Add some space below each list item */
+}
+
 .content-slide p {
     font-size: 1.5em;
 }
