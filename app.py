@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     # Use the provided slidedir, otherwise fall back to existing logic
     if args.slide_dir:
-        SLIDES_DIR = args.slidedir
+        SLIDES_DIR = args.slide_dir
     else:
         SLIDES_DIR = 'slides_demo'
 
