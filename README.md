@@ -69,6 +69,8 @@ Inside the `slides_demo/` directory, create a `presentation.json` file. This fil
 
 #### Supported Templates
 
+*Note: All slide templates support an optional `notes` field (string) inside the `data` object, which can contain Markdown text for the speaker notes.*
+
 1.  **`section_title`**: A large centered title.
     *   Data fields: `title`, `fun_sentence` (optional).
 2.  **`quote_slide`**: A large centered quote.
@@ -119,6 +121,7 @@ Open your web browser and navigate to `http://127.0.0.1:5000` to see your presen
 |                    | `D` / `Space`                      |                    |
 | **Previous Slide** | `Left Arrow` / `Up Arrow` / `A`    |                    |
 | **Jump to Slide**  | `G`                                | Right-Click        |
+| **Speaker Notes**  | `S`                                |                    |
 | **Reload Slides**  | `R`                                |                    |
 | **Show/Hide Help** | `H` (Show) / `Esc` (Hide)          |                    |
 

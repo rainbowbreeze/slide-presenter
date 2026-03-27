@@ -25,6 +25,8 @@ The output must be a single JSON object containing an array of slides. Use the f
 
 ## 1. Template Definitions & JSON Schema
 
+*Note: All slide templates support an optional `notes` field (string) inside the `data` object, which can contain Markdown text for the speaker notes.*
+
 ### **Template A: Section Title**
 *   **Template ID:** `section_title`
 *   **Structure:**

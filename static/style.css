@@ -236,3 +236,46 @@ body, html {
     padding: 3px 6px;
     border-radius: 4px;
 }
+
+/* Speaker Notes Mode */
+body.speaker-mode-active {
+    background-color: #111 !important;
+    color: #eee !important;
+}
+
+.speaker-notes-container {
+    justify-content: flex-start;
+    padding: 2em;
+    text-align: left;
+    height: auto;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.speaker-meta {
+    font-size: 1.5em;
+    color: #888;
+    margin-bottom: 1em;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5em;
+}
+
+.speaker-notes-content {
+    font-size: 2.5em;
+    line-height: 1.6;
+}
+
+.speaker-notes-content p {
+    margin-top: 0;
+    margin-bottom: 1em;
+}
+
+.speaker-notes-content ul {
+    margin-top: 0;
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+.speaker-notes-content li {
+    margin-bottom: 0.5em;
+}

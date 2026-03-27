@@ -11,6 +11,7 @@ The core features include:
 -   JSON-based slide management utilizing explicit slide templates.
 -   Custom theming via a `template.json` file (fonts, colors, etc.).
 -   Support for different slide templates: section titles, quotes, simple content, double column content, and content with images.
+-   Synchronized Speaker Notes panel for presenting.
 -   Keyboard and mouse navigation.
 -   Dynamic reloading of slide content.
 -   The presentation footer is displayed automatically based on theme and presentation metadata.

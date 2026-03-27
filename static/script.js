@@ -5,10 +5,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let metadata = {};
     let currentSlide = 0;
 
+    // Detect speaker mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSpeakerMode = urlParams.get('mode') === 'speaker';
+
+    // Set up synchronization channel
+    const syncChannel = new BroadcastChannel('slide-sync');
+    syncChannel.onmessage = (event) => {
+        if (event.data && event.data.type === 'SLIDE_CHANGE') {
+            const newIndex = event.data.index;
+            if (newIndex !== currentSlide) {
+                renderSlide(newIndex, false); // Pass false to prevent infinite broadcast loop
+            }
+        }
+    };
+
     // DOM Elements
     const slideContainer = document.getElementById('slide-container');
     const footer = document.getElementById('footer');
     const helpOverlay = document.getElementById('help-overlay');
+
+    if (isSpeakerMode) {
+        document.body.classList.add('speaker-mode-active');
+    }
 
     /**
      * Initializes the presentation by fetching slide data and the template from the API.
@@ -34,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update document title if metadata has a title
             if (metadata && metadata.title) {
-                document.title = metadata.title;
+                document.title = isSpeakerMode ? `[Notes] ${metadata.title}` : metadata.title;
             }
         } catch (error) {
             console.error("Error initializing presentation:", error);
@@ -48,8 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
      * to the corresponding DOM elements.
      */
     function applyTemplate() {
-        if (template['bg-color']) document.body.style.backgroundColor = template['bg-color'];
-        if (template['text-color']) document.body.style.color = template['text-color'];
+        // Only apply background colors if not in speaker mode, or let speaker mode override via CSS
+        if (!isSpeakerMode) {
+            if (template['bg-color']) document.body.style.backgroundColor = template['bg-color'];
+            if (template['text-color']) document.body.style.color = template['text-color'];
+        }
         if (template['font-main']) document.body.style.fontFamily = template['font-main'];
         
         // Configure the footer styling based on the template
@@ -78,8 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Renders a specific slide based on its index in the slides array.
      * @param {number} index - The index of the slide to render.
+     * @param {boolean} broadcast - Whether to broadcast this slide change to other windows.
      */
-    function renderSlide(index) {
+    function renderSlide(index, broadcast = true) {
         // Ensure the requested index is within bounds
         if (index < 0 || index >= slides.length) {
             return;
@@ -90,18 +113,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const slide = slides[index];
         const data = slide.data || {};
         
+        if (broadcast) {
+            syncChannel.postMessage({ type: 'SLIDE_CHANGE', index: currentSlide });
+        }
+
         // Clear previous slide content and background styles
         slideContainer.innerHTML = '';
         slideContainer.style.backgroundImage = 'none';
         
-        // Ensure the footer is displayed by default
+        // Ensure the footer is displayed by default (will be hidden in speaker mode or on some slide types)
         footer.style.display = 'block';
 
-        // Create a new container for the content of the current slide
         const contentDiv = document.createElement('div');
         contentDiv.className = 'slide-content';
 
-        // Render content differently based on the slide's designated template
+        if (isSpeakerMode) {
+            footer.style.display = 'none';
+            contentDiv.classList.add('speaker-notes-container');
+            
+            // Render notes using marked.js if available
+            let notesContent = data.notes || '';
+            let notesHtml = notesContent 
+                ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent) 
+                : '<p><em>No notes for this slide.</em></p>';
+                
+            contentDiv.innerHTML = `
+                <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
+                <div class="speaker-notes-content">${notesHtml}</div>
+            `;
+            slideContainer.appendChild(contentDiv);
+            return;
+        }
+
+        // Render standard content differently based on the slide's designated template
         switch (slide.template) {
             case 'section_title':
                 contentDiv.classList.add('section-title-slide');
@@ -185,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function navigate(direction) {
         const newIndex = currentSlide + direction;
         if (newIndex >= 0 && newIndex < slides.length) {
-            renderSlide(newIndex);
+            renderSlide(newIndex); // This broadcasts naturally
         }
     }
 
@@ -197,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (slideNumberStr) {
             const slideNumber = parseInt(slideNumberStr, 10);
             if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
-                renderSlide(slideNumber - 1);
+                renderSlide(slideNumber - 1); // This broadcasts naturally
             } else {
                 alert('Invalid slide number.');
             }
@@ -226,6 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'r':
                 initialize();
+                break;
+            case 's':
+                if (!isSpeakerMode) {
+                    window.open(window.location.pathname + '?mode=speaker', 'SpeakerNotes', 'width=800,height=600');
+                }
                 break;
             case 'h':
                 helpOverlay.classList.remove('hidden');

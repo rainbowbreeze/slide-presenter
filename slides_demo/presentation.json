@@ -8,7 +8,8 @@
       "template": "section_title",
       "data": {
         "title": "The Concrete Jungle Turns Green",
-        "fun_sentence": "Because your fire escape deserves better than just being a place for a rusty bike."
+        "fun_sentence": "Because your fire escape deserves better than just being a place for a rusty bike.",
+        "notes": "Welcome everyone! \n\nToday we are going to talk about **Urban Eden**. \n- Introduce the concept of city farming.\n- Ask the audience who has a balcony plant."
       }
     },
     {
@@ -28,7 +29,8 @@
           "Mental health and stress reduction",
           "Biodiversity support for city bees and butterflies",
           "Efficient use of wasted vertical space"
-        ]
+        ],
+        "notes": "Here are the main reasons why this matters:\n- The heat island effect is getting worse.\n- Show the graph from the 2023 study (mental note).\n- Talk about the vertical space in Tokyo."
   }
     },
     {
