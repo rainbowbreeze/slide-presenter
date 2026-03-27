@@ -42,14 +42,20 @@ The application follows a simple client-server model:
     3.  Applies the theme from `template.json`.
     4.  Handles all user interactions, such as keyboard and mouse events for navigation.
 
+## Coding Conventions
+
+When modifying or extending the codebase, please adhere to the following conventions:
+-   **Python Version:** Use Python 3.11 or higher.
+-   **Type Hinting:** Use PEP-484 type hints extensively for all functions, methods, and variables to ensure type safety and readability.
+-   **Code Comments:** Write abundant and clear comments throughout the code to explain the intent, logic, and any complex operations.
+
 ## Documentation Maintenance
 
-To ensure the project remains easy to understand, use, and develop, it is crucial to keep all documentation up-to-date.
+To ensure the project remains easy to understand, use, and develop, it is crucial to keep all documentation up-to-date and maintain a clear separation of concerns between files:
 
-When making any changes to the codebase, such as adding new features, modifying existing logic, or fixing bugs, the following files **must be updated** to reflect those changes:
-
-1.  **`README.md`**: The primary entry point for users. It should always contain accurate setup instructions and a clear description of all user-facing features.
-2.  **`GEMINI.md`**: This file. It provides the high-level architectural overview and should be updated if the architecture changes.
-3.  **`gemini-prompt.md`**: The detailed development prompt. It should be kept in sync with the current implementation to serve as a comprehensive technical reference and to facilitate future AI-assisted development.
+1.  **`GEMINI.md` (The WHAT):** This file. Use it to keep track of the application's architecture, core features, and high-level design. It should be updated whenever architectural decisions or major features change.
+2.  **`README.md` (The HOW):** The primary entry point for users. Use it to keep track of how to install, configure, and use the application. It should always contain accurate setup instructions and usage details.
+3.  **Synchronization:** Always keep `GEMINI.md` and `README.md` in sync. When adding a feature, update `GEMINI.md` with the architectural details and `README.md` with the usage instructions.
+4.  **`gemini-prompt.md`**: The detailed development prompt. It should be kept in sync with the current implementation to serve as a comprehensive technical reference and to facilitate future AI-assisted development.
 
 Maintaining consistency across these documents is essential for project health and collaboration.

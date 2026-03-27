@@ -13,7 +13,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 
 ## Setup and Installation
 
-1.  **Prerequisites:** Ensure you have Python 3.6+ installed.
+1.  **Prerequisites:** Ensure you have Python 3.11+ installed.
 
 2.  **Virtual environment:** Configure the virtual environment
     ```bash
