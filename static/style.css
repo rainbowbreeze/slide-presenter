@@ -148,7 +148,7 @@ body, html {
     padding: 5%;
 }
 
-.content-and-image-slide > h1 {
+.content-and-image-slide h1 {
     font-size: 4em;
     margin-bottom: 0.5em;
     margin-top: 0;

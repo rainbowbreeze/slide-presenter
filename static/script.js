@@ -256,9 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     : `/slides/${imageUri}`;
                 
                 contentDiv.innerHTML = `
-                    <h1>${data.title || ''}</h1>
                     <div class="content-image-container ${imagePosClass}">
                         <div class="text-side">
+                            <h1>${data.title || ''}</h1>
                             ${renderBullets(data.bullets)}
                         </div>
                         <div class="image-side" style="background-image: url('${imageUrl}');">
