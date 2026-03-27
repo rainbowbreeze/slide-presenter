@@ -1,0 +1,119 @@
+{
+  "presentation_metadata": {
+    "title": "Urban Eden: The Future of City Farming",
+    "version": "1.0"
+  },
+  "slides": [
+    {
+      "template": "section_title",
+      "data": {
+        "title": "The Concrete Jungle Turns Green",
+        "fun_sentence": "Because your fire escape deserves better than just being a place for a rusty bike."
+      }
+    },
+    {
+      "template": "quote_slide",
+      "data": {
+        "quote": "To plant a garden is to believe in tomorrow.",
+        "attribution": "Audrey Hepburn"
+      }
+    },
+    {
+      "template": "content_simple",
+      "data": {
+        "title": "Why Urban Gardening Matters",
+        "bullets": [
+          "Reduction of urban heat island effect",
+          "Zero-mile food production",
+          "Mental health and stress reduction",
+          "Biodiversity support for city bees and butterflies",
+          "Efficient use of wasted vertical space"
+        ]
+  }
+    },
+    {
+      "template": "content_and_image",
+      "data": {
+        "title": "Smart Hydroponics",
+        "bullets": [
+          "Uses 90% less water than traditional soil farming",
+          "Nutrient-rich water solutions delivered via automation",
+          "Perfect for apartments with limited natural light",
+          "Year-round harvesting regardless of local climate"
+        ],
+        "image_uri": "https://picsum.photos/800/800",
+        "image_position": "right"
+      }
+    },
+    {
+      "template": "section_title",
+      "data": {
+        "title": "Tech Meets Texture",
+        "fun_sentence": "Finally, an app that tells you exactly when your basil is feeling dramatic."
+      }
+    },
+    {
+      "template": "content_double",
+      "data": {
+        "title": "Indoor vs. Outdoor Challenges",
+        "column_left": {
+          "sub_heading": "The Living Room Lab",
+          "bullets": [
+            "Limited space for large root systems",
+            "Dependence on artificial lighting",
+            "Consistent temperature control"
+          ]
+        },
+        "column_right": {
+          "sub_heading": "The Rooftop Wild",
+          "bullets": [
+            "Wind exposure and structural weight limits",
+            "Pest management in an open environment",
+            "Intense UV exposure and soil dehydration"
+          ]
+        }
+      }
+    },
+    {
+      "template": "content_simple",
+      "data": {
+        "title": "Top Mistakes to Avoid",
+        "bullets": [
+          "Overwatering out of 'guilty love'",
+          "Ignoring drainage requirements",
+          "Planting seasonal crops in the wrong window",
+          "Underestimating how heavy wet soil actually is",
+          "Forgetting that plants need food (fertilizer) too"
+        ]
+      }
+    },
+    {
+      "template": "content_and_image",
+      "data": {
+        "title": "Vertical Forests",
+        "bullets": [
+          "Architectural integration of trees into skyscrapers",
+          "Filtering air pollution for entire city blocks",
+          "Creating a natural sound barrier against city noise",
+          "The ultimate synergy of civil engineering and botany"
+        ],
+        "image_uri": "https://picsum.photos/800/800?random=2",
+        "image_position": "left"
+      }
+    },
+    {
+      "template": "quote_slide",
+      "data": {
+        "quote": "The glory of gardening: hands in the dirt, head in the sun, heart with nature.",
+        "attribution": "Alfred Austin"
+      }
+    },
+    {
+      "template": "section_title",
+      "data": {
+        "title": "Let's Get Growing",
+        "fun_sentence": "Go forth and multiply... your tomato yield."
+      }
+    }
+  ]
+}

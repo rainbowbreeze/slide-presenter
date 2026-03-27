@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // State variables for the presentation
     let slides = [];
     let template = {};
+    let metadata = {};
     let currentSlide = 0;
 
     // DOM Elements
@@ -25,10 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             slides = data.slides;
             template = data.template;
+            metadata = data.metadata;
 
             // Apply the visual theme and render the current slide
             applyTemplate();
             renderSlide(currentSlide);
+            
+            // Update document title if metadata has a title
+            if (metadata && metadata.title) {
+                document.title = metadata.title;
+            }
         } catch (error) {
             console.error("Error initializing presentation:", error);
             // Display a user-friendly error message if loading fails
@@ -41,14 +48,31 @@ document.addEventListener('DOMContentLoaded', () => {
      * to the corresponding DOM elements.
      */
     function applyTemplate() {
-        document.body.style.backgroundColor = template['bg-color'];
-        document.body.style.color = template['text-color'];
-        document.body.style.fontFamily = template['font-main'];
+        if (template['bg-color']) document.body.style.backgroundColor = template['bg-color'];
+        if (template['text-color']) document.body.style.color = template['text-color'];
+        if (template['font-main']) document.body.style.fontFamily = template['font-main'];
         
         // Configure the footer styling based on the template
-        footer.style.fontSize = template['footer-font-size'];
-        footer.style.color = template['footer-text-color'];
-        footer.textContent = template['footer-text'];
+        if (template['footer-font-size']) footer.style.fontSize = template['footer-font-size'];
+        if (template['footer-text-color']) footer.style.color = template['footer-text-color'];
+        
+        // Fallback to metadata title if footer text is not set
+        footer.textContent = template['footer-text'] || (metadata && metadata.title) || '';
+    }
+
+    /**
+     * Helper to render an array of bullets.
+     */
+    function renderBullets(bullets) {
+        if (!bullets || bullets.length === 0) return '';
+        let html = '<ul>';
+        bullets.forEach(bullet => {
+            // If marked.js is available, we can parse inline markdown
+            let content = typeof marked !== 'undefined' ? marked.parseInline(bullet) : bullet;
+            html += `<li>${content}</li>`;
+        });
+        html += '</ul>';
+        return html;
     }
 
     /**
@@ -63,67 +87,103 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update the current slide state
         currentSlide = index;
-
         const slide = slides[index];
+        const data = slide.data || {};
         
         // Clear previous slide content and background styles
         slideContainer.innerHTML = '';
         slideContainer.style.backgroundImage = 'none';
         
-        // Ensure the footer is displayed by default; specific slide types may hide it
+        // Ensure the footer is displayed by default
         footer.style.display = 'block';
 
         // Create a new container for the content of the current slide
         const contentDiv = document.createElement('div');
         contentDiv.className = 'slide-content';
 
-        // Render content differently based on the slide's designated type
-        switch (slide.type) {
-            case 'section':
-                // Section slides represent major dividers with a centered title
-                contentDiv.classList.add('section-slide');
-                contentDiv.innerHTML = `<h1>${slide.content}</h1>`;
-                footer.style.display = 'none'; // Hide footer on section slides
+        // Render content differently based on the slide's designated template
+        switch (slide.template) {
+            case 'section_title':
+                contentDiv.classList.add('section-title-slide');
+                contentDiv.innerHTML = `
+                    <h1>${data.title || ''}</h1>
+                    ${data.fun_sentence ? `<div class="fun-sentence">${data.fun_sentence}</div>` : ''}
+                `;
+                footer.style.display = 'none'; // Usually hide footer on section slides
                 break;
                 
-            case 'content':
-                // Content slides render standard text/markdown content
-                contentDiv.classList.add('content-slide');
-                
-                // Prepend the optional slide title if one exists
-                let titleHtml = slide.title ? `<h1>${slide.title}</h1>` : '';
-                
-                // Parse and inject the markdown content
-                contentDiv.innerHTML = titleHtml + marked.parse(slide.content);
+            case 'quote_slide':
+                contentDiv.classList.add('quote-slide');
+                contentDiv.innerHTML = `
+                    <div class="quote-text">${data.quote || ''}</div>
+                    ${data.attribution ? `<div class="quote-attribution">${data.attribution}</div>` : ''}
+                `;
                 break;
                 
-            case 'image':
-                // Image slides display full-screen background images
-                slideContainer.classList.add('image-slide');
+            case 'content_simple':
+                contentDiv.classList.add('content-simple-slide');
+                contentDiv.innerHTML = `
+                    <h1>${data.title || ''}</h1>
+                    ${renderBullets(data.bullets)}
+                `;
+                break;
                 
-                // Determine whether to use the provided URL or construct a local path
-                let imageUrl = slide.is_remote_image ? slide.content : `/slides/${slide.content}`;
+            case 'content_double':
+                contentDiv.classList.add('content-double-slide');
+                let leftCol = data.column_left || {};
+                let rightCol = data.column_right || {};
+                contentDiv.innerHTML = `
+                    <h1>${data.title || ''}</h1>
+                    <div class="columns-container">
+                        <div class="column">
+                            ${leftCol.sub_heading ? `<h2>${leftCol.sub_heading}</h2>` : ''}
+                            ${renderBullets(leftCol.bullets)}
+                        </div>
+                        <div class="column">
+                            ${rightCol.sub_heading ? `<h2>${rightCol.sub_heading}</h2>` : ''}
+                            ${renderBullets(rightCol.bullets)}
+                        </div>
+                    </div>
+                `;
+                break;
                 
-                // Set the background image on the main container
-                slideContainer.style.backgroundImage = `url('${imageUrl}')`;
-                footer.style.display = 'none'; // Hide footer on image slides
+            case 'content_and_image':
+                contentDiv.classList.add('content-and-image-slide');
+                
+                // Check image position, default to right
+                let imagePosClass = data.image_position === 'left' ? 'image-left' : '';
+                
+                let imageUri = data.image_uri || 'https://picsum.photos/800/800'; 
+                let imageUrl = imageUri.startsWith('http://') || imageUri.startsWith('https://') 
+                    ? imageUri 
+                    : `/slides/${imageUri}`;
+                
+                contentDiv.innerHTML = `
+                    <h1>${data.title || ''}</h1>
+                    <div class="content-image-container ${imagePosClass}">
+                        <div class="text-side">
+                            ${renderBullets(data.bullets)}
+                        </div>
+                        <div class="image-side" style="background-image: url('${imageUrl}');">
+                            <!-- Image represented via background -->
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            default:
+                contentDiv.innerHTML = `<h1>Unknown template: ${slide.template}</h1>`;
                 break;
         }
         
-        // Append the newly created content to the slide container (except for image slides, which use a background)
-        if (slide.type !== 'image') {
-             slideContainer.appendChild(contentDiv);
-        }
+        slideContainer.appendChild(contentDiv);
     }
 
     /**
      * Navigates the presentation forwards or backwards by a given offset.
-     * @param {number} direction - The offset to move (e.g., 1 for next, -1 for previous).
      */
     function navigate(direction) {
         const newIndex = currentSlide + direction;
-        
-        // Ensure navigation stays within the bounds of the presentation
         if (newIndex >= 0 && newIndex < slides.length) {
             renderSlide(newIndex);
         }
@@ -134,13 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function jumpToSlide() {
         const slideNumberStr = prompt('Jump to slide number:');
-        
-        // Validate the user's input before attempting to render the slide
         if (slideNumberStr) {
             const slideNumber = parseInt(slideNumberStr, 10);
-            
             if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
-                renderSlide(slideNumber - 1); // Adjust 1-based input to 0-based index
+                renderSlide(slideNumber - 1);
             } else {
                 alert('Invalid slide number.');
             }
@@ -148,61 +205,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-
-    // Handle global keyboard navigation and interactions
     document.addEventListener('keydown', (e) => {
-        // Prevent key events from triggering while the user is typing into an input or textarea
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             return;
         }
-        
         switch (e.key) {
-            // Forward navigation keys
             case 'ArrowRight':
             case 'ArrowDown':
             case 'd':
             case ' ':
                 navigate(1);
                 break;
-                
-            // Backward navigation keys
             case 'ArrowLeft':
             case 'ArrowUp':
             case 'a':
                 navigate(-1);
                 break;
-                
-            // Interaction keys
             case 'g':
                 jumpToSlide();
                 break;
             case 'r':
-                initialize(); // Reload presentation state from server
+                initialize();
                 break;
             case 'h':
-                helpOverlay.classList.remove('hidden'); // Show help screen
+                helpOverlay.classList.remove('hidden');
                 break;
             case 'Escape':
-                helpOverlay.classList.add('hidden'); // Hide help screen
+                helpOverlay.classList.add('hidden');
                 break;
         }
     });
 
-    // Handle standard mouse click to progress the presentation
     document.addEventListener('click', (e) => {
-        // Don't navigate if clicking on an interactive element like a link or the help overlay
         if (e.target.tagName === 'A' || helpOverlay.contains(e.target)) {
             return;
         }
         navigate(1);
     });
 
-    // Handle right-click (context menu) to trigger the jump-to-slide prompt
     document.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); // Prevent the default browser context menu from appearing
+        e.preventDefault();
         jumpToSlide();
     });
 
-    // Begin the application flow on page load
     initialize();
 });

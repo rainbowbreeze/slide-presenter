@@ -1,4 +1,3 @@
-
 body, html {
     margin: 0;
     padding: 0;
@@ -19,52 +18,181 @@ body, html {
 }
 
 .slide-content {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* Slide Types */
-.section-slide {
+/* Template A: Section Title */
+.section-title-slide {
     text-align: center;
+    align-items: center;
 }
 
-.section-slide h1 {
+.section-title-slide h1 {
+    font-size: 5em;
+    margin: 0 0 0.2em 0;
+}
+
+.section-title-slide .fun-sentence {
+    font-size: 2em;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Template B: Quote Slide */
+.quote-slide {
+    text-align: center;
+    align-items: center;
+    padding: 0 10%;
+}
+
+.quote-slide .quote-text {
     font-size: 4em;
-    margin: 0;
+    font-style: italic;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
 }
 
-.content-slide {
+.quote-slide .quote-text::before {
+    content: '"';
+}
+
+.quote-slide .quote-text::after {
+    content: '"';
+}
+
+.quote-slide .quote-attribution {
+    font-size: 2em;
+    font-weight: bold;
+    opacity: 0.9;
+}
+
+.quote-slide .quote-attribution::before {
+    content: '— ';
+}
+
+/* Template C: Content Simple */
+.content-simple-slide {
     text-align: left;
-    width: 90%;
-    height: 90%;
+    justify-content: flex-start;
+    padding: 5%;
 }
 
-.content-slide h1 {
-    font-size: 3em;
+.content-simple-slide h1 {
+    font-size: 4em;
+    margin-bottom: 0.5em;
+    margin-top: 0;
+}
+
+.content-simple-slide ul {
+    font-size: 2em;
+    line-height: 1.5;
+}
+
+.content-simple-slide li {
     margin-bottom: 0.5em;
 }
 
-.content-slide ul, .content-slide ol {
-    font-size: 1.5em;
+/* Template D: Content Double */
+.content-double-slide {
+    text-align: left;
+    justify-content: flex-start;
+    padding: 5%;
 }
 
-.content-slide li {
-    margin-bottom: 0.5em; /* Add some space below each list item */
+.content-double-slide > h1 {
+    font-size: 4em;
+    margin-bottom: 0.5em;
+    margin-top: 0;
 }
 
-.content-slide p {
-    font-size: 1.5em;
-}
-
-
-.image-slide {
+.columns-container {
+    display: flex;
+    flex-direction: row;
+    gap: 5%;
     width: 100%;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center center;
+    flex: 1;
 }
 
+.column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.column h2 {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+    opacity: 0.9;
+    border-bottom: 2px solid currentColor;
+    padding-bottom: 0.2em;
+}
+
+.column ul {
+    font-size: 1.8em;
+    line-height: 1.4;
+    padding-left: 1.2em;
+}
+
+.column li {
+    margin-bottom: 0.5em;
+}
+
+/* Template E: Content and Image */
+.content-and-image-slide {
+    text-align: left;
+    justify-content: flex-start;
+    padding: 5%;
+}
+
+.content-and-image-slide > h1 {
+    font-size: 4em;
+    margin-bottom: 0.5em;
+    margin-top: 0;
+}
+
+.content-image-container {
+    display: flex;
+    flex-direction: row;
+    gap: 5%;
+    width: 100%;
+    flex: 1;
+    align-items: stretch;
+}
+
+.content-image-container.image-left {
+    flex-direction: row-reverse;
+}
+
+.text-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.text-side ul {
+    font-size: 2em;
+    line-height: 1.5;
+    padding-left: 1.2em;
+}
+
+.text-side li {
+    margin-bottom: 0.5em;
+}
+
+.image-side {
+    flex: 1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Footer & Help Overlay (Unchanged mostly) */
 #footer {
     position: fixed;
     bottom: 20px;

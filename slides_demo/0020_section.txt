@@ -1,2 +1,0 @@
-SECTION
-Core Features

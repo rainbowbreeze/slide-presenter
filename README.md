@@ -1,13 +1,13 @@
 # SelfHosted Slide Presenter
 
-SelfHosted Slide Presenter is a lightweight, file-based presentation tool that runs in your web browser. It generates a slideshow from simple text or Markdown files, allowing you to focus on your content.
+SelfHosted Slide Presenter is a lightweight, file-based presentation tool that runs in your web browser. It generates a slideshow from a structured JSON file, allowing you to focus on your content using predefined templates.
 
 ## Features
 
 -   **Web-Based:** Runs a local Python web server. View your presentation in any modern web browser.
--   **File-Based:** Slides are created from simple `.txt` and `.md` files.
--   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file. The footer is displayed on content slides, but hidden on section and image slides.
--   **Slide Types:** Supports section title slides, content slides with Markdown, and full-screen image slides.
+-   **JSON-Based:** Slides are defined in a single `presentation.json` file.
+-   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file. The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
+-   **Slide Templates:** Supports multiple layout templates including section titles, quotes, simple content, double column content, and content with images.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **Dynamic Reload:** Update your slide files and reload the presentation instantly with a keypress.
 
@@ -27,7 +27,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
     ```
 
 4.  **Directory Structure:** Create the following directories in your project root:
-    -   `slides_demo/`: To store your slide content files and `template.json`.
+    -   `slides_demo/`: To store your `presentation.json` and `template.json`.
     -   `static/`: To store the `script.js` and `style.css` files.
     -   `templates/`: To store the `index.html` file.
 
@@ -35,50 +35,50 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 
 ### 1. Create Slides
 
-Inside the `slides_demo/` directory, create your slide files. The slides will be ordered alphabetically by filename (e.g., `0010_intro.md`, `0020_first_section.txt`, etc.).
+Inside the `slides_demo/` directory, create a `presentation.json` file. This file contains the metadata and an array of slides.
 
-#### Section Slide
-
-Create a `.txt` file where the first line is `SECTION`. The second line will be the centered title of the slide.
-
-*Example (`002_section.txt`):*
-```
-SECTION
-This is a Section Title
-```
-
-#### Content Slide (Markdown)
-
-Create a `.md` file where the first line starts with `#`. This line becomes the slide title, and the rest of the file is treated as Markdown content.
-
-*Example (`003_content.md`):*
-```md
-# My First Slide
-This is a list of items:
-- Item 1
-- Item 2
-- **Bolded** text.
-```
-
-Supported markdown specs (from https://marked.js.org/#specifications):
-- Markdown 1.0: https://daringfireball.net/projects/markdown/syntax
-- CommonMark 0.31: http://spec.commonmark.org/
-- GitHub Flavored Markdown 0.29: https://help.github.com/articles/github-flavored-markdown/
-
-
-#### Image Slide
-
-Create a `.txt` or `.md` file where the first line is a URL to an image or a path to a local image. Local images should be placed in the `slides_demo/` directory and are served directly from there.
-
-*Example with a remote image:*
-```
-https://via.placeholder.com/800x600
+*Example (`presentation.json`):*
+```json
+{
+  "presentation_metadata": {
+    "title": "Urban Eden: The Future of City Farming",
+    "version": "1.0"
+  },
+  "slides": [
+    {
+      "template": "section_title",
+      "data": {
+        "title": "The Concrete Jungle Turns Green",
+        "fun_sentence": "Because your fire escape deserves better."
+      }
+    },
+    {
+      "template": "content_simple",
+      "data": {
+        "title": "Why Urban Gardening Matters",
+        "bullets": [
+          "Reduction of urban heat island effect",
+          "Zero-mile food production",
+          "Mental health and stress reduction"
+        ]
+      }
+    }
+  ]
+}
 ```
 
-*Example with a local image:*
-```
-0040_my-diagram.png
-```
+#### Supported Templates
+
+1.  **`section_title`**: A large centered title.
+    *   Data fields: `title`, `fun_sentence` (optional).
+2.  **`quote_slide`**: A large centered quote.
+    *   Data fields: `quote`, `attribution`.
+3.  **`content_simple`**: A title with a single list of bullets.
+    *   Data fields: `title`, `bullets` (array of strings).
+4.  **`content_double`**: A title with two columns of bullets.
+    *   Data fields: `title`, `column_left` (object with `sub_heading`, `bullets`), `column_right` (object with `sub_heading`, `bullets`).
+5.  **`content_and_image`**: A title with bullets on one side and an image on the other.
+    *   Data fields: `title`, `bullets`, `image_position` (`left` or `right`), `image_uri` (URL or path to a local image in the slides directory).
 
 ### 2. Customize Your Theme
 
