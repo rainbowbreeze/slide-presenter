@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let template = {};
     let metadata = {};
     let currentSlide = 0;
+    let speakerFontSize = 2.5; // Default font size for speaker notes
 
     // Detect speaker mode
     const urlParams = new URLSearchParams(window.location.search);
@@ -27,6 +28,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isSpeakerMode) {
         document.body.classList.add('speaker-mode-active');
+        
+        // Inject top bar
+        const topBar = document.createElement('div');
+        topBar.className = 'speaker-top-bar';
+        topBar.innerHTML = `
+            <div class="font-controls">
+                <button id="btn-font-decrease">A-</button>
+                <button id="btn-font-increase">A+</button>
+            </div>
+            <div class="timer-controls">
+                <span id="speaker-timer" class="speaker-timer">00:00:00</span>
+                <button id="btn-timer-reset">Reset</button>
+            </div>
+        `;
+        document.body.insertBefore(topBar, slideContainer);
+        
+        // Font size controls
+        document.getElementById('btn-font-increase').addEventListener('click', () => {
+            speakerFontSize += 0.2;
+            updateSpeakerFontSize();
+        });
+        document.getElementById('btn-font-decrease').addEventListener('click', () => {
+            speakerFontSize = Math.max(1, speakerFontSize - 0.2);
+            updateSpeakerFontSize();
+        });
+        
+        function updateSpeakerFontSize() {
+            const content = document.querySelector('.speaker-notes-content');
+            if (content) {
+                content.style.fontSize = speakerFontSize + 'em';
+            }
+        }
+
+        // Timer controls
+        let startTime = Date.now();
+        setInterval(updateTimer, 1000);
+        
+        function updateTimer() {
+            const now = Date.now();
+            const diff = Math.floor((now - startTime) / 1000);
+            const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+            const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+            const s = String(diff % 60).padStart(2, '0');
+            document.getElementById('speaker-timer').textContent = `${h}:${m}:${s}`;
+        }
+        
+        document.getElementById('btn-timer-reset').addEventListener('click', () => {
+            startTime = Date.now();
+            updateTimer();
+            // Don't focus the button so spacebar navigation still works
+            document.getElementById('btn-timer-reset').blur();
+        });
     }
 
     /**
@@ -139,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             contentDiv.innerHTML = `
                 <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
-                <div class="speaker-notes-content">${notesHtml}</div>
+                <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em">${notesHtml}</div>
             `;
             slideContainer.appendChild(contentDiv);
             return;

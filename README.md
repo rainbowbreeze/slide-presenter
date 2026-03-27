@@ -8,6 +8,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **JSON-Based:** Slides are defined in a single `presentation.json` file.
 -   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file. The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
 -   **Slide Templates:** Supports multiple layout templates including section titles, quotes, simple content, double column content, and content with images.
+-   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer and font size controls.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **Dynamic Reload:** Update your slide files and reload the presentation instantly with a keypress.
 
