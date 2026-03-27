@@ -339,7 +339,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A' || helpOverlay.contains(e.target)) {
+        // Find the top bar if it exists
+        const topBar = document.querySelector('.speaker-top-bar');
+        
+        if (e.target.tagName === 'A' || helpOverlay.contains(e.target) || (topBar && topBar.contains(e.target))) {
             return;
         }
         navigate(1);
