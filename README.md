@@ -7,8 +7,8 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **Web-Based:** Runs a local Python web server. View your presentation in any modern web browser.
 -   **JSON-Based:** Slides are defined in a single `presentation.json` file.
 -   **Custom Theming:** Define fonts, colors, and a persistent footer using a `template.json` file. The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
--   **Slide Templates:** Supports multiple layout templates including section titles, quotes, simple content, double column content, and content with images.
--   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer and font size controls.
+-   **Slide Templates:** Supports 7 multiple layout templates including section titles, quotes, columns, and images.
+-   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **Dynamic Reload:** Update your slide files and reload the presentation instantly with a keypress.
 
@@ -82,6 +82,10 @@ Inside the `slides_demo/` directory, create a `presentation.json` file. This fil
     *   Data fields: `title`, `column_left` (object with `sub_heading`, `bullets`), `column_right` (object with `sub_heading`, `bullets`).
 5.  **`content_and_image`**: A title with bullets on one side and an image on the other.
     *   Data fields: `title`, `bullets`, `image_position` (`left` or `right`), `image_uri` (URL or path to a local image in the slides directory).
+6.  **`title_and_image`**: A title with a centered image below it.
+    *   Data fields: `title`, `image_uri`.
+7.  **`image_full_screen`**: An image that fills the entire slide without any text or footer.
+    *   Data fields: `image_uri`.
 
 ### 2. Customize Your Theme
 
@@ -110,6 +114,12 @@ To specify a custom directory for your slides, use the `--slide-dir` argument:
 
 ```bash
 python app.py --slide-dir=path/to/your/slides
+```
+
+To specify a custom template file name, use the `--template` argument:
+
+```bash
+python app.py --template=template_claw.json
 ```
 
 Open your web browser and navigate to `http://127.0.0.1:5000` to see your presentation.

@@ -10,8 +10,8 @@ The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
 -   Custom theming via a `template.json` file (fonts, colors, etc.).
--   Support for different slide templates: section titles, quotes, simple content, double column content, and content with images.
--   Synchronized Speaker Notes panel for presenting.
+-   Support for 7 different slide templates: section titles, quotes, simple content, double column content, content with images, title and image, and full-screen images.
+-   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   Keyboard and mouse navigation.
 -   Dynamic reloading of slide content.
 -   The presentation footer is displayed automatically based on theme and presentation metadata.
@@ -27,21 +27,25 @@ The application follows a simple client-server model:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
         1.  Reads and parses `presentation.json` from the `SLIDES_DIR` directory to extract slide data and metadata.
-        2.  Reads a `template.json` for theming information.
+        2.  Reads the configured template JSON (defaulting to `template.json`) for theming information.
         3.  Returns a JSON payload containing the structured slide data, metadata, and template configuration.
     -   `/slides/<path:filename>`: Serves static assets (like local images) from the configured `SLIDES_DIR`.
--   **Command-line Arguments:** `app.py` accepts a `--slide-dir` argument to specify the directory containing slide files, overriding the default `slides_demo/` fallback.
--   **Content Directory:** The `slides_demo/` directory holds all user-facing content, including the presentation JSON and the theme template. The directory used can be overridden by the `--slide-dir` command-line argument.
+-   **Command-line Arguments:**
+    -   `--slide-dir`: Specifies the directory containing slide files (default: `slides_demo/`).
+    -   `--template`: Specifies the template file name to use (default: `template.json`).
+-   **Content Directory:** The `slides_demo/` directory holds all user-facing content, including the presentation JSON and the theme template.
 
 ### Frontend
 
 -   **`templates/index.html`:** The single HTML page that acts as the container for the presentation.
--   **`static/style.css`:** Provides the visual styling for the slides, including flexbox layouts for the new templates, fonts, and colors defined in the theme.
+-   **`static/style.css`:** Provides the visual styling for the slides, including flexbox layouts for the templates, speaker mode specific styles, and resizable panel logic.
 -   **`static/script.js`:** The client-side logic that:
     1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint.
-    2.  Dynamically renders the slides based on their defined `template` type (`section_title`, `quote_slide`, `content_simple`, `content_double`, `content_and_image`).
-    3.  Applies the theme from `template.json`.
-    4.  Handles all user interactions, such as keyboard and mouse events for navigation.
+    2.  Dynamically renders the slides based on their defined `template` type.
+    3.  Applies the theme from the template JSON.
+    4.  Handles synchronization between the main view and the speaker notes panel via `BroadcastChannel`.
+    5.  Implements the resizable preview area logic and the presentation timer.
+    6.  Handles all user interactions, such as keyboard and mouse events for navigation.
 
 ## Coding Conventions
 

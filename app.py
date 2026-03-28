@@ -11,6 +11,10 @@ app: Flask = Flask(__name__)
 # It is initialized to 'slides_demo' and can be overridden during application startup based on command-line arguments.
 SLIDES_DIR: str = 'slides_demo'
 
+# Global variable to store the name of the template file to use.
+# It is initialized to 'template.json' and can be overridden during application startup based on command-line arguments.
+TEMPLATE_FILE: str = 'template.json'
+
 @app.route('/')
 def index() -> str:
     """
@@ -43,8 +47,8 @@ def get_slides() -> Response | tuple[Response, int]:
     metadata: dict[str, Any] = {}
 
     try:
-        # Load the presentation theme from template.json
-        template_path: str = os.path.join(SLIDES_DIR, 'template.json')
+        # Load the presentation theme from the configured template file
+        template_path: str = os.path.join(SLIDES_DIR, TEMPLATE_FILE)
         if os.path.exists(template_path):
             with open(template_path, 'r') as f:
                 template = json.load(f)
@@ -88,14 +92,20 @@ if __name__ == '__main__':
     # Add an argument to override the default slide directory
     parser.add_argument('--slide-dir', type=str,
                         help='Specify the directory containing slide files (e.g., --slide-dir=my_slides)',
-                        default=None)
+                        default='slides_demo')
+    
+    # Add an argument to override the default template file
+    parser.add_argument('--template', type=str,
+                        help='Specify the template file name (e.g., --template=my_template.json)',
+                        default='template.json')
+    
     args: argparse.Namespace = parser.parse_args()
 
-    # Determine the directory to use based on the provided arguments or default to 'slides_demo'
-    if args.slide_dir:
-        SLIDES_DIR = args.slide_dir
-    else:
-        SLIDES_DIR = 'slides_demo'
+    # Determine the directory to use
+    SLIDES_DIR = args.slide_dir
+        
+    # Determine the template file to use
+    TEMPLATE_FILE = args.template
 
     # Validate that the determined SLIDES_DIR actually exists on the filesystem
     if not os.path.isdir(SLIDES_DIR):
