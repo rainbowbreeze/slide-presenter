@@ -307,7 +307,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let notesHtml = notesContent 
                 ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent) 
                 : '<p><em>No notes for this slide.</em></p>';
-            contentDiv.querySelector('.speaker-notes-content').innerHTML = notesHtml;
+            
+            const notesContentEl = contentDiv.querySelector('.speaker-notes-content');
+            if (notesContentEl) {
+                notesContentEl.innerHTML = notesHtml;
+            }
             
             // Populate Previews
             renderMiniPreview(index, document.getElementById('preview-current'));

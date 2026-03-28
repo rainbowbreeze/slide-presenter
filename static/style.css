@@ -282,9 +282,11 @@ body.speaker-mode-active {
 }
 
 body.speaker-mode-active #slide-container {
-    height: auto;
+    height: 100%;
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 0;
 }
 
