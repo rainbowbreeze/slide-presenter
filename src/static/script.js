@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let metadata = {};
     let currentSlide = 0;
     let speakerFontSize = 2.5; // Default font size for speaker notes
+    let isResizing = false; // Flag for resizing state
+    let blockClick = false; // Flag to temporarily block navigation clicks
 
     // Detect speaker mode
     const urlParams = new URLSearchParams(window.location.search);
@@ -427,12 +429,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (e) => {
-        // Find the top bar if it exists
-        const topBar = document.querySelector('.speaker-top-bar');
+        if (blockClick) return; // Prevent navigation if we just finished a resize
         
-        if (e.target.tagName === 'A' || helpOverlay.contains(e.target) || (topBar && topBar.contains(e.target))) {
+        // Find speaker-specific elements to ignore
+        const topBar = document.querySelector('.speaker-top-bar');
+        const resizer = document.querySelector('.speaker-resizer');
+        const previewArea = document.querySelector('.speaker-preview-area');
+        
+        if (e.target.tagName === 'A' || 
+            helpOverlay.contains(e.target) || 
+            (topBar && topBar.contains(e.target)) ||
+            (resizer && resizer.contains(e.target)) ||
+            (previewArea && previewArea.contains(e.target))) {
             return;
         }
+
+        // In speaker mode, clicking the body outside specific areas shouldn't necessarily navigate
+        // unless it's explicitly intended. Let's restrict it to the notes area for better control.
+        if (isSpeakerMode) {
+            const notesArea = document.querySelector('.speaker-notes-area');
+            if (notesArea && notesArea.contains(e.target)) {
+                navigate(1);
+            }
+            return;
+        }
+
         navigate(1);
     });
 
@@ -471,7 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.style.fontFamily = theme['font-main'] || 'sans-serif';
     }
 
-    let isResizing = false;
     let startY, startNotesHeight;
 
     function setupResizer() {
@@ -505,10 +525,16 @@ document.addEventListener('DOMContentLoaded', () => {
             notesArea.style.height = `${newHeight}px`;
         }
     }
-    
+
     function handleMouseUp() {
         if (!isResizing) return;
         isResizing = false;
+        
+        // Set blockClick to true for a short duration to prevent the subsequent 
+        // 'click' event from triggering navigation.
+        blockClick = true;
+        setTimeout(() => { blockClick = false; }, 100);
+
         document.body.classList.remove('resizing-active');
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);

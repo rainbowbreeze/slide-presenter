@@ -1,11 +1,11 @@
 {
     "font-main": "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg-color": "#0a0f1a",
-    "text-color": "#f0f4ff",
+    "bg-color": "#0F0F10",
+    "text-color": "#ECECED",
     "text-font-size": "16px",
-    "title-color": "#ff4d4d",
+    "title-color": "#ffffff",
     "title-font-size": "4.5em",
-    "footer-text": "🦞 OpenClaw inspired theme 🦞",
-    "footer-font-size": "14px",
-    "footer-text-color": "#8892b0"
+    "footer-text": "Powered by MyClaw.ai",
+    "footer-font-size": "12px",
+    "footer-text-color": "#71717A"
 }
