@@ -126,15 +126,25 @@ if __name__ == '__main__':
     args: argparse.Namespace = parser.parse_args()
 
     # Determine the directory to use for assets and as a base for simple filenames
-    ASSETS_DIR = args.slides_dir
+    ASSETS_DIR = os.path.abspath(args.slides_dir)
     
     # Resolve slides and theme files using the resolution logic
-    SLIDES_FILE = resolve_path(args.slides, ASSETS_DIR)
-    THEME_FILE = resolve_path(args.theme, ASSETS_DIR)
+    SLIDES_FILE = os.path.abspath(resolve_path(args.slides, ASSETS_DIR))
+    THEME_FILE = os.path.abspath(resolve_path(args.theme, ASSETS_DIR))
+
+    # Verify that the ASSETS_DIR actually exists
+    if not os.path.isdir(ASSETS_DIR):
+        print(f"Error: Specified assets directory '{ASSETS_DIR}' does not exist.")
+        exit(1)
 
     # Verify that the SLIDES_FILE exists
     if not os.path.isfile(SLIDES_FILE):
         print(f"Error: Slides file '{SLIDES_FILE}' does not exist.")
+        exit(1)
+        
+    # Verify that the THEME_FILE exists
+    if not os.path.isfile(THEME_FILE):
+        print(f"Error: Theme file '{THEME_FILE}' does not exist.")
         exit(1)
 
     print(f"Starting app with:")
