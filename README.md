@@ -27,11 +27,10 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
     pip install -r requirements.txt
     ```
 
-4.  **Directory Structure:** The application can run with files in the current directory or a specified directory.
-    -   `slides.json`: Your presentation content.
-    -   `theme.json`: Your theme configuration.
-    -   `static/`: Contains `script.js` and `style.css`.
-    -   `templates/`: Contains `index.html`.
+4.  **Directory Structure:** The application source code is in `src/`.
+    -   `slides/`: Contains your `slides.json` and `theme.json`.
+    -   `src/static/`: Contains `script.js` and `style.css`.
+    -   `src/templates/`: Contains `index.html`.
 
 ## How to Use
 
@@ -110,7 +109,7 @@ Create a `theme.json` file to customize the look and feel of your presentation.
 Execute the Python script from your project's root directory:
 
 ```bash
-python app.py
+python src/app.py
 ```
 
 By default, the app looks for `slides.json` and `theme.json` under the `slides/` directory.
@@ -119,15 +118,15 @@ By default, the app looks for `slides.json` and `theme.json` under the `slides/`
 
 -   `--slides`: Specify a custom slides JSON file. If only a filename is provided, it is looked for in the directory specified by `--slides-dir`.
     ```bash
-    python app.py --slides=my_presentation.json
+    python src/app.py --slides=my_presentation.json
     ```
 -   `--theme`: Specify a custom theme JSON file. If only a filename is provided, it is looked for in the directory specified by `--slides-dir`.
     ```bash
-    python app.py --theme=my_theme.json
+    python src/app.py --theme=my_theme.json
     ```
 -   `--slides-dir`: Specify a directory to look for default `slides.json` and `theme.json` files (default: `slides`). This directory is also used to resolve simple filenames provided via `--slides` or `--theme`.
     ```bash
-    python app.py --slides-dir=my_content_folder
+    python src/app.py --slides-dir=my_content_folder
     ```
 
 Open your web browser and navigate to `http://127.0.0.1:5000` to see your presentation.

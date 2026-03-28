@@ -18,12 +18,12 @@ The core features include:
 
 ## Architecture
 
-The application follows a simple client-server model:
+The application source code is located in the `src/` directory.
 
 ### Backend
 
 -   **Framework:** Python with Flask.
--   **`app.py`:** The main application file. It contains two primary routes:
+-   **`src/app.py`:** The main application file. It contains two primary routes:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
         1.  Reads and parses the configured slides JSON file to extract slide data and metadata.
@@ -38,9 +38,9 @@ The application follows a simple client-server model:
 
 ### Frontend
 
--   **`templates/index.html`:** The single HTML page that acts as the container for the presentation.
--   **`static/style.css`:** Provides the visual styling for the slides, including flexbox layouts for the templates, speaker mode specific styles, and resizable panel logic.
--   **`static/script.js`:** The client-side logic that:
+-   **`src/templates/index.html`:** The single HTML page that acts as the container for the presentation.
+-   **`src/static/style.css`:** Provides the visual styling for the slides, including flexbox layouts for the templates, speaker mode specific styles, and resizable panel logic.
+-   **`src/static/script.js`:** The client-side logic that:
     1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint.
     2.  Dynamically renders the slides based on their defined `template` type.
     3.  Applies the theme from the theme JSON.
