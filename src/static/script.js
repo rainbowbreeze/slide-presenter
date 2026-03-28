@@ -127,12 +127,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (theme['font-main']) document.body.style.fontFamily = theme['font-main'];
         
+        // Apply general text size if provided
+        if (theme['text-font-size']) document.body.style.fontSize = theme['text-font-size'];
+        
         // Configure the footer styling based on the theme
         if (theme['footer-font-size']) footer.style.fontSize = theme['footer-font-size'];
         if (theme['footer-text-color']) footer.style.color = theme['footer-text-color'];
         
         // Fallback to metadata title if footer text is not set
         footer.textContent = theme['footer-text'] || (metadata && metadata.title) || '';
+
+        // Inject dynamic styles for elements that need specific theme properties
+        let dynamicStyles = document.getElementById('dynamic-theme-styles');
+        if (!dynamicStyles) {
+            dynamicStyles = document.createElement('style');
+            dynamicStyles.id = 'dynamic-theme-styles';
+            document.head.appendChild(dynamicStyles);
+        }
+        
+        let styleContent = '';
+        if (theme['title-color']) {
+            styleContent += `h1, h2, h3 { color: ${theme['title-color']} !important; } `;
+        }
+        if (theme['title-font-size']) {
+            styleContent += `.slide-content h1 { font-size: ${theme['title-font-size']} !important; } `;
+        }
+        dynamicStyles.textContent = styleContent;
     }
 
     /**
@@ -336,8 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
             slideContainer.style.backgroundSize = 'contain';
             slideContainer.style.backgroundPosition = 'center center';
             slideContainer.style.backgroundRepeat = 'no-repeat';
-            footer.style.display = 'none';
-        } else if (slide.template === 'section_title') {
             footer.style.display = 'none';
         }
 

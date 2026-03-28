@@ -2,7 +2,10 @@
     "font-main": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     "bg-color": "#1c1c1c",
     "text-color": "#e0e0e0",
+    "text-font-size": "16px",
+    "title-color": "#ffffff",
+    "title-font-size": "5em",
     "footer-text": "SelfHosted Slide Presenter",
-    "footer-font-size": "14px",
+    "footer-font-size": "12px",
     "footer-text-color": "#aaaaaa"
 }
