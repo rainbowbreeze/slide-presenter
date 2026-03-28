@@ -8,14 +8,16 @@
       "template": "section_title",
       "data": {
         "title": "The Concrete Jungle Turns Green",
-        "fun_sentence": "Because your fire escape deserves better than just being a place for a rusty bike."
+        "sentence": "Because your fire escape deserves better than just being a place for a rusty bike.",
+        "speaker_notes": "Welcome everyone! \n\nToday we are going to talk about **Urban Eden**. \n- Introduce the concept of city farming.\n- Ask the audience who has a balcony plant."
       }
     },
     {
       "template": "quote_slide",
       "data": {
         "quote": "To plant a garden is to believe in tomorrow.",
-        "attribution": "Audrey Hepburn"
+        "attribution": "Audrey Hepburn",
+        "speaker_notes": "A classic quote to set the mood."
       }
     },
     {
@@ -28,7 +30,8 @@
           "Mental health and stress reduction",
           "Biodiversity support for city bees and butterflies",
           "Efficient use of wasted vertical space"
-        ]
+        ],
+        "speaker_notes": "Focus on the environmental and psychological benefits."
   }
     },
     {
@@ -42,14 +45,15 @@
           "Year-round harvesting regardless of local climate"
         ],
         "image_uri": "https://picsum.photos/800/800",
-        "image_position": "right"
+        "image_position": "right",
+        "speaker_notes": "Explain how technology makes it accessible for everyone."
       }
     },
     {
       "template": "section_title",
       "data": {
         "title": "Tech Meets Texture",
-        "fun_sentence": "Finally, an app that tells you exactly when your basil is feeling dramatic."
+        "sentence": "Finally, an app that tells you exactly when your basil is feeling dramatic."
       }
     },
     {
@@ -71,7 +75,8 @@
             "Pest management in an open environment",
             "Intense UV exposure and soil dehydration"
           ]
-        }
+        },
+        "speaker_notes": "Compare the controlled environment of a home vs the harsh city rooftops."
       }
     },
     {
@@ -109,10 +114,25 @@
       }
     },
     {
+      "template": "title_and_image",
+      "data": {
+        "title": "A Vision of Tomorrow",
+        "image_uri": "https://picsum.photos/1024/768?random=3",
+        "speaker_notes": "Showcase what's possible with urban planning."
+      }
+    },
+    {
+      "template": "image_full_screen",
+      "data": {
+        "image_uri": "https://picsum.photos/1920/1080?random=4",
+        "speaker_notes": "Impactful visual to close the presentation."
+      }
+    },
+    {
       "template": "section_title",
       "data": {
         "title": "Let's Get Growing",
-        "fun_sentence": "Go forth and multiply... your tomato yield."
+        "sentence": "Go forth and multiply... your tomato yield."
       }
     }
   ]

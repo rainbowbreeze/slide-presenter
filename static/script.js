@@ -151,6 +151,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Generates the inner HTML for a specific slide data object based on its template.
+     */
+    function generateSlideHTML(slide) {
+        const data = slide.data || {};
+        let html = '';
+        let classList = [];
+        
+        switch (slide.template) {
+            case 'section_title':
+                classList.push('section-title-slide');
+                html = `
+                    <h1>${data.title || ''}</h1>
+                    ${data.sentence ? `<div class="fun-sentence">${data.sentence}</div>` : ''}
+                `;
+                break;
+                
+            case 'quote_slide':
+                classList.push('quote-slide');
+                html = `
+                    <div class="quote-text">${data.quote || ''}</div>
+                    ${data.attribution ? `<div class="quote-attribution">${data.attribution}</div>` : ''}
+                `;
+                break;
+                
+            case 'content_simple':
+                classList.push('content-simple-slide');
+                html = `
+                    <h1>${data.title || ''}</h1>
+                    ${renderBullets(data.bullets)}
+                `;
+                break;
+                
+            case 'content_double':
+                classList.push('content-double-slide');
+                let leftCol = data.column_left || {};
+                let rightCol = data.column_right || {};
+                html = `
+                    <h1>${data.title || ''}</h1>
+                    <div class="columns-container">
+                        <div class="column">
+                            ${leftCol.sub_heading ? `<h2>${leftCol.sub_heading}</h2>` : ''}
+                            ${renderBullets(leftCol.bullets)}
+                        </div>
+                        <div class="column">
+                            ${rightCol.sub_heading ? `<h2>${rightCol.sub_heading}</h2>` : ''}
+                            ${renderBullets(rightCol.bullets)}
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'content_and_image':
+                classList.push('content-and-image-slide');
+                let imagePosClass = data.image_position === 'left' ? 'image-left' : '';
+                let imageUri = data.image_uri || 'https://picsum.photos/800/800'; 
+                let imageUrl = imageUri.startsWith('http://') || imageUri.startsWith('https://') 
+                    ? imageUri 
+                    : `/slides/${imageUri}`;
+                html = `
+                    <div class="content-image-container ${imagePosClass}">
+                        <div class="text-side">
+                            <h1>${data.title || ''}</h1>
+                            ${renderBullets(data.bullets)}
+                        </div>
+                        <div class="image-side" style="background-image: url('${imageUrl}');">
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'title_and_image':
+                classList.push('title-and-image-slide');
+                let tiUri = data.image_uri || 'https://picsum.photos/800/600'; 
+                let tiUrl = tiUri.startsWith('http://') || tiUri.startsWith('https://') 
+                    ? tiUri 
+                    : `/slides/${tiUri}`;
+                html = `
+                    <h1>${data.title || ''}</h1>
+                    <div class="centered-image-container">
+                        <img src="${tiUrl}" alt="${data.title || 'Slide Image'}" />
+                    </div>
+                `;
+                break;
+                
+            case 'image_full_screen':
+                classList.push('image-full-screen-content'); // Just a placeholder class, styling is handled on container usually
+                break;
+                
+            default:
+                html = `<h1>Unknown template: ${slide.template}</h1>`;
+                break;
+        }
+        
+        return { html, classList, data };
+    }
+
+    /**
      * Renders a specific slide based on its index in the slides array.
      * @param {number} index - The index of the slide to render.
      * @param {boolean} broadcast - Whether to broadcast this slide change to other windows.
@@ -173,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear previous slide content and background styles
         slideContainer.innerHTML = '';
         slideContainer.style.backgroundImage = 'none';
+        slideContainer.classList.remove('image-full-screen-mode');
         
         // Ensure the footer is displayed by default (will be hidden in speaker mode or on some slide types)
         footer.style.display = 'block';
@@ -184,95 +282,63 @@ document.addEventListener('DOMContentLoaded', () => {
             footer.style.display = 'none';
             contentDiv.classList.add('speaker-notes-container');
             
-            // Render notes using marked.js if available
-            let notesContent = data.notes || '';
+            // Layout structure for speaker mode
+            contentDiv.innerHTML = `
+                <div class="speaker-notes-area">
+                    <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
+                    <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em"></div>
+                </div>
+                <div class="speaker-resizer"></div>
+                <div class="speaker-preview-area">
+                    <div class="preview-box">
+                        <div class="preview-label">Current</div>
+                        <div class="preview-container" id="preview-current"></div>
+                    </div>
+                    <div class="preview-box">
+                        <div class="preview-label">Next</div>
+                        <div class="preview-container" id="preview-next"></div>
+                    </div>
+                </div>
+            `;
+            slideContainer.appendChild(contentDiv);
+            
+            // Populate Notes
+            let notesContent = data.speaker_notes || '';
             let notesHtml = notesContent 
                 ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent) 
                 : '<p><em>No notes for this slide.</em></p>';
-                
-            contentDiv.innerHTML = `
-                <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
-                <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em">${notesHtml}</div>
-            `;
-            slideContainer.appendChild(contentDiv);
+            contentDiv.querySelector('.speaker-notes-content').innerHTML = notesHtml;
+            
+            // Populate Previews
+            renderMiniPreview(index, document.getElementById('preview-current'));
+            if (index + 1 < slides.length) {
+                renderMiniPreview(index + 1, document.getElementById('preview-next'));
+            } else {
+                document.getElementById('preview-next').innerHTML = '<div class="end-of-presentation-preview">End of Presentation</div>';
+            }
+            
+            setupResizer();
             return;
         }
 
-        // Render standard content differently based on the slide's designated template
-        switch (slide.template) {
-            case 'section_title':
-                contentDiv.classList.add('section-title-slide');
-                contentDiv.innerHTML = `
-                    <h1>${data.title || ''}</h1>
-                    ${data.fun_sentence ? `<div class="fun-sentence">${data.fun_sentence}</div>` : ''}
-                `;
-                footer.style.display = 'none'; // Usually hide footer on section slides
-                break;
-                
-            case 'quote_slide':
-                contentDiv.classList.add('quote-slide');
-                contentDiv.innerHTML = `
-                    <div class="quote-text">${data.quote || ''}</div>
-                    ${data.attribution ? `<div class="quote-attribution">${data.attribution}</div>` : ''}
-                `;
-                break;
-                
-            case 'content_simple':
-                contentDiv.classList.add('content-simple-slide');
-                contentDiv.innerHTML = `
-                    <h1>${data.title || ''}</h1>
-                    ${renderBullets(data.bullets)}
-                `;
-                break;
-                
-            case 'content_double':
-                contentDiv.classList.add('content-double-slide');
-                let leftCol = data.column_left || {};
-                let rightCol = data.column_right || {};
-                contentDiv.innerHTML = `
-                    <h1>${data.title || ''}</h1>
-                    <div class="columns-container">
-                        <div class="column">
-                            ${leftCol.sub_heading ? `<h2>${leftCol.sub_heading}</h2>` : ''}
-                            ${renderBullets(leftCol.bullets)}
-                        </div>
-                        <div class="column">
-                            ${rightCol.sub_heading ? `<h2>${rightCol.sub_heading}</h2>` : ''}
-                            ${renderBullets(rightCol.bullets)}
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'content_and_image':
-                contentDiv.classList.add('content-and-image-slide');
-                
-                // Check image position, default to right
-                let imagePosClass = data.image_position === 'left' ? 'image-left' : '';
-                
-                let imageUri = data.image_uri || 'https://picsum.photos/800/800'; 
-                let imageUrl = imageUri.startsWith('http://') || imageUri.startsWith('https://') 
-                    ? imageUri 
-                    : `/slides/${imageUri}`;
-                
-                contentDiv.innerHTML = `
-                    <div class="content-image-container ${imagePosClass}">
-                        <div class="text-side">
-                            <h1>${data.title || ''}</h1>
-                            ${renderBullets(data.bullets)}
-                        </div>
-                        <div class="image-side" style="background-image: url('${imageUrl}');">
-                            <!-- Image represented via background -->
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            default:
-                contentDiv.innerHTML = `<h1>Unknown template: ${slide.template}</h1>`;
-                break;
-        }
+        const generated = generateSlideHTML(slide);
         
+        if (slide.template === 'image_full_screen') {
+            // Apply background to slideContainer directly
+            let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
+            let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
+            slideContainer.classList.add('image-full-screen-mode');
+            slideContainer.style.backgroundImage = `url('${fsUrl}')`;
+            slideContainer.style.backgroundSize = 'contain';
+            slideContainer.style.backgroundPosition = 'center center';
+            slideContainer.style.backgroundRepeat = 'no-repeat';
+            footer.style.display = 'none';
+        } else if (slide.template === 'section_title') {
+            footer.style.display = 'none';
+        }
+
+        contentDiv.classList.add(...generated.classList);
+        contentDiv.innerHTML = generated.html;
         slideContainer.appendChild(contentDiv);
     }
 
@@ -352,6 +418,79 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         jumpToSlide();
     });
+
+    function renderMiniPreview(index, container) {
+        if (!container) return;
+        const slide = slides[index];
+        if (!slide) return;
+        
+        container.innerHTML = '';
+        const generated = generateSlideHTML(slide);
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'slide-content mini-preview-content ' + generated.classList.join(' ');
+        
+        if (slide.template === 'image_full_screen') {
+            let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
+            let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
+            contentDiv.style.backgroundImage = `url('${fsUrl}')`;
+            contentDiv.style.backgroundSize = 'contain';
+            contentDiv.style.backgroundPosition = 'center center';
+            contentDiv.style.backgroundRepeat = 'no-repeat';
+        } else {
+            contentDiv.innerHTML = generated.html;
+        }
+        
+        container.appendChild(contentDiv);
+        
+        // Apply theme to the mini preview container to simulate full slide
+        container.style.backgroundColor = template['bg-color'] || '#fff';
+        container.style.color = template['text-color'] || '#000';
+        container.style.fontFamily = template['font-main'] || 'sans-serif';
+    }
+
+    let isResizing = false;
+    let startY, startNotesHeight;
+
+    function setupResizer() {
+        const resizer = document.querySelector('.speaker-resizer');
+        if (!resizer) return;
+        
+        resizer.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startY = e.clientY;
+            const notesArea = document.querySelector('.speaker-notes-area');
+            startNotesHeight = notesArea.getBoundingClientRect().height;
+            document.body.classList.add('resizing-active');
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        });
+    }
+    
+    function handleMouseMove(e) {
+        if (!isResizing) return;
+        const notesArea = document.querySelector('.speaker-notes-area');
+        const previewArea = document.querySelector('.speaker-preview-area');
+        if (!notesArea || !previewArea) return;
+        
+        const dy = e.clientY - startY;
+        const newHeight = startNotesHeight + dy;
+        
+        // Min height constraints
+        if (newHeight > 50 && newHeight < window.innerHeight - 150) {
+            notesArea.style.flex = 'none';
+            notesArea.style.height = `${newHeight}px`;
+        }
+    }
+    
+    function handleMouseUp() {
+        if (!isResizing) return;
+        isResizing = false;
+        document.body.classList.remove('resizing-active');
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+    }
 
     initialize();
 });

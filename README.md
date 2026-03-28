@@ -50,7 +50,7 @@ Inside the `slides_demo/` directory, create a `presentation.json` file. This fil
       "template": "section_title",
       "data": {
         "title": "The Concrete Jungle Turns Green",
-        "fun_sentence": "Because your fire escape deserves better."
+        "sentence": "Because your fire escape deserves better."
       }
     },
     {
@@ -70,10 +70,10 @@ Inside the `slides_demo/` directory, create a `presentation.json` file. This fil
 
 #### Supported Templates
 
-*Note: All slide templates support an optional `notes` field (string) inside the `data` object, which can contain Markdown text for the speaker notes.*
+*Note: All slide templates support an optional `speaker_notes` field (string) inside the `data` object, which can contain Markdown text for the speaker notes.*
 
 1.  **`section_title`**: A large centered title.
-    *   Data fields: `title`, `fun_sentence` (optional).
+    *   Data fields: `title`, `sentence` (optional).
 2.  **`quote_slide`**: A large centered quote.
     *   Data fields: `quote`, `attribution`.
 3.  **`content_simple`**: A title with a single list of bullets.
