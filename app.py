@@ -7,11 +7,11 @@ from flask.wrappers import Response
 
 app: Flask = Flask(__name__)
 
-# Global variables to store paths to the slides file, template file, and assets directory.
+# Global variables to store paths to the slides file, theme file, and assets directory.
 # These are initialized during application startup based on command-line arguments.
 SLIDES_FILE: str = 'slides.json'
-TEMPLATE_FILE: str = 'template.json'
-ASSETS_DIR: str = 'slides_demo'
+THEME_FILE: str = 'theme.json'
+ASSETS_DIR: str = 'slides'
 
 @app.route('/')
 def index() -> str:
@@ -29,26 +29,26 @@ def index() -> str:
 @app.route('/api/slides')
 def get_slides() -> Response | tuple[Response, int]:
     """
-    API endpoint to retrieve all presentation slides and the theme template.
+    API endpoint to retrieve all presentation slides and the visual theme.
     
     This endpoint reads the configured slides JSON file to get the presentation 
-    metadata and slides, and loads the configured theme template JSON. 
+    metadata and slides, and loads the configured theme JSON. 
     The combined data is returned as a JSON payload to be processed by the frontend.
     
     Returns:
-        Response | tuple[Response, int]: A JSON response containing the 'template', 'slides', 
+        Response | tuple[Response, int]: A JSON response containing the 'theme', 'slides', 
                                          and 'metadata'. In case of an error, returns a JSON 
                                          error message with a 500 status code.
     """
     slides: list[dict[str, Any]] = []
-    template: dict[str, Any] = {}
+    theme: dict[str, Any] = {}
     metadata: dict[str, Any] = {}
 
     try:
-        # Load the presentation theme from the configured template file
-        if os.path.exists(TEMPLATE_FILE):
-            with open(TEMPLATE_FILE, 'r') as f:
-                template = json.load(f)
+        # Load the presentation theme from the configured theme file
+        if os.path.exists(THEME_FILE):
+            with open(THEME_FILE, 'r') as f:
+                theme = json.load(f)
 
         # Load the presentation data from the configured slides file
         if os.path.exists(SLIDES_FILE):
@@ -63,11 +63,11 @@ def get_slides() -> Response | tuple[Response, int]:
 
     except Exception as e:
         # Handle exceptions gracefully and return a 500 Internal Server Error
-        print(f"Error reading slides or template: {e}")
+        print(f"Error reading slides or theme: {e}")
         return jsonify({"error": str(e)}), 500
 
-    # Return the aggregated slide data, metadata, and template configuration
-    return jsonify({"template": template, "slides": slides, "metadata": metadata})
+    # Return the aggregated slide data, metadata, and theme configuration
+    return jsonify({"theme": theme, "slides": slides, "metadata": metadata})
 
 @app.route('/slides/<path:filename>')
 def serve_slide_asset(filename: str) -> Response:
@@ -85,6 +85,25 @@ def serve_slide_asset(filename: str) -> Response:
     """
     return send_from_directory(ASSETS_DIR, filename)
 
+def resolve_path(provided_path: str, assets_dir: str) -> str:
+    """
+    Resolves a file path based on whether it is a simple filename or a full path.
+    
+    If the provided_path is just a filename (no directory components), it is 
+    looked for under the assets_dir. Otherwise, it is treated as an absolute 
+    or relative path as-is.
+    
+    Args:
+        provided_path (str): The path or filename provided by the user.
+        assets_dir (str): The directory to look into for simple filenames.
+        
+    Returns:
+        str: The resolved path.
+    """
+    if os.path.dirname(provided_path) == '':
+        return os.path.join(assets_dir, provided_path)
+    return provided_path
+
 if __name__ == '__main__':
     # Initialize the argument parser for command-line options
     parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Run the SelfHosted Slide Presenter app.")
@@ -94,31 +113,24 @@ if __name__ == '__main__':
                         help='Specify the slides JSON file (default: slides.json)',
                         default='slides.json')
     
-    # Add an argument to specify the template JSON file
-    parser.add_argument('--template', type=str,
-                        help='Specify the template JSON file (default: template.json)',
-                        default='template.json')
+    # Add an argument to specify the theme JSON file
+    parser.add_argument('--theme', type=str,
+                        help='Specify the theme JSON file (default: theme.json)',
+                        default='theme.json')
     
-    # Add an argument to specify a directory containing default slides and template files
+    # Add an argument to specify a directory containing slides and theme files
     parser.add_argument('--slides-dir', type=str,
-                        help='Specify a directory to look for default slides.json and template.json files',
-                        default=None)
+                        help='Specify a directory to look for default slides and theme files (default: slides)',
+                        default='slides')
     
     args: argparse.Namespace = parser.parse_args()
 
-    # Determine the paths to use
-    if args.slides_dir:
-        # If slides-dir is specified, resolve default names within that directory
-        # unless full paths were provided for slides and template.
-        # For simplicity, if slides_dir is set, we assume slides and template are relative to it.
-        SLIDES_FILE = os.path.join(args.slides_dir, args.slides)
-        TEMPLATE_FILE = os.path.join(args.slides_dir, args.template)
-        ASSETS_DIR = args.slides_dir
-    else:
-        SLIDES_FILE = args.slides
-        TEMPLATE_FILE = args.template
-        # Determine ASSETS_DIR based on SLIDES_FILE location
-        ASSETS_DIR = os.path.dirname(os.path.abspath(SLIDES_FILE)) or '.'
+    # Determine the directory to use for assets and as a base for simple filenames
+    ASSETS_DIR = args.slides_dir
+    
+    # Resolve slides and theme files using the resolution logic
+    SLIDES_FILE = resolve_path(args.slides, ASSETS_DIR)
+    THEME_FILE = resolve_path(args.theme, ASSETS_DIR)
 
     # Verify that the SLIDES_FILE exists
     if not os.path.isfile(SLIDES_FILE):
@@ -127,7 +139,7 @@ if __name__ == '__main__':
 
     print(f"Starting app with:")
     print(f"  Slides file:   {SLIDES_FILE}")
-    print(f"  Template file: {TEMPLATE_FILE}")
+    print(f"  Theme file:    {THEME_FILE}")
     print(f"  Assets dir:    {ASSETS_DIR}")
 
     # Start the Flask development server with debug mode enabled

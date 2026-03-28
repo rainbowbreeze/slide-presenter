@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State variables for the presentation
     let slides = [];
-    let template = {};
+    let theme = {};
     let metadata = {};
     let currentSlide = 0;
     let speakerFontSize = 2.5; // Default font size for speaker notes
@@ -83,8 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Initializes the presentation by fetching slide data and the template from the API.
-     * Applies the template and renders the initial slide.
+     * Initializes the presentation by fetching slide data and the theme from the API.
+     * Applies the theme and renders the initial slide.
      */
     async function initialize() {
         try {
@@ -97,11 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Parse the JSON response
             const data = await response.json();
             slides = data.slides;
-            template = data.template;
+            theme = data.theme;
             metadata = data.metadata;
 
             // Apply the visual theme and render the current slide
-            applyTemplate();
+            applyTheme();
             renderSlide(currentSlide);
             
             // Update document title if metadata has a title
@@ -116,23 +116,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Applies the visual template settings (colors, fonts) fetched from the backend 
+     * Applies the visual theme settings (colors, fonts) fetched from the backend 
      * to the corresponding DOM elements.
      */
-    function applyTemplate() {
+    function applyTheme() {
         // Only apply background colors if not in speaker mode, or let speaker mode override via CSS
         if (!isSpeakerMode) {
-            if (template['bg-color']) document.body.style.backgroundColor = template['bg-color'];
-            if (template['text-color']) document.body.style.color = template['text-color'];
+            if (theme['bg-color']) document.body.style.backgroundColor = theme['bg-color'];
+            if (theme['text-color']) document.body.style.color = theme['text-color'];
         }
-        if (template['font-main']) document.body.style.fontFamily = template['font-main'];
+        if (theme['font-main']) document.body.style.fontFamily = theme['font-main'];
         
-        // Configure the footer styling based on the template
-        if (template['footer-font-size']) footer.style.fontSize = template['footer-font-size'];
-        if (template['footer-text-color']) footer.style.color = template['footer-text-color'];
+        // Configure the footer styling based on the theme
+        if (theme['footer-font-size']) footer.style.fontSize = theme['footer-font-size'];
+        if (theme['footer-text-color']) footer.style.color = theme['footer-text-color'];
         
         // Fallback to metadata title if footer text is not set
-        footer.textContent = template['footer-text'] || (metadata && metadata.title) || '';
+        footer.textContent = theme['footer-text'] || (metadata && metadata.title) || '';
     }
 
     /**
@@ -448,9 +448,9 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(contentDiv);
         
         // Apply theme to the mini preview container to simulate full slide
-        container.style.backgroundColor = template['bg-color'] || '#fff';
-        container.style.color = template['text-color'] || '#000';
-        container.style.fontFamily = template['font-main'] || 'sans-serif';
+        container.style.backgroundColor = theme['bg-color'] || '#fff';
+        container.style.color = theme['text-color'] || '#000';
+        container.style.fontFamily = theme['font-main'] || 'sans-serif';
     }
 
     let isResizing = false;

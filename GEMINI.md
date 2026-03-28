@@ -9,7 +9,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool. It ru
 The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
--   Custom theming via a template JSON file (defaulting to `template.json`).
+-   Custom theming via a theme JSON file (defaulting to `theme.json`).
 -   Support for 7 different slide templates: section titles, quotes, simple content, double column content, content with images, title and image, and full-screen images.
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   Keyboard and mouse navigation.
@@ -27,14 +27,14 @@ The application follows a simple client-server model:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
         1.  Reads and parses the configured slides JSON file to extract slide data and metadata.
-        2.  Reads the configured template JSON for theming information.
-        3.  Returns a JSON payload containing the structured slide data, metadata, and template configuration.
+        2.  Reads the configured theme JSON for theming information.
+        3.  Returns a JSON payload containing the structured slide data, metadata, and theme configuration.
     -   `/slides/<path:filename>`: Serves static assets (like local images) from the directory containing the slides file.
--   **Command-line Arguments:**
+-   Command-line Arguments:
     -   `--slides`: Specifies the slides JSON file (default: `slides.json`).
-    -   `--template`: Specifies the template JSON file (default: `template.json`).
-    -   `--slides-dir`: Specifies a directory to look for default `slides.json` and `template.json` files.
--   **Content Directory:** The `slides_demo/` directory is provided as an example containing a `slides.json` and `template.json`.
+    -   `--theme`: Specifies the theme JSON file (default: `theme.json`).
+    -   `--slides-dir`: Specifies a directory to look for default `slides.json` and `theme.json` files (default: `slides`).
+-   **Content Directory:** The `slides/` directory is provided as an example containing a `slides.json` and `theme.json`.
 
 ### Frontend
 
@@ -43,7 +43,7 @@ The application follows a simple client-server model:
 -   **`static/script.js`:** The client-side logic that:
     1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint.
     2.  Dynamically renders the slides based on their defined `template` type.
-    3.  Applies the theme from the template JSON.
+    3.  Applies the theme from the theme JSON.
     4.  Handles synchronization between the main view and the speaker notes panel via `BroadcastChannel`.
     5.  Implements the resizable preview area logic and the presentation timer.
     6.  Handles all user interactions, such as keyboard and mouse events for navigation.

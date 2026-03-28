@@ -6,7 +6,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 
 -   **Web-Based:** Runs a local Python web server. View your presentation in any modern web browser.
 -   **JSON-Based:** Slides are defined in a single JSON file (defaulting to `slides.json`).
--   **Custom Theming:** Define fonts, colors, and a persistent footer using a template JSON file (defaulting to `template.json`). The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
+-   **Custom Theming:** Define fonts, colors, and a persistent footer using a theme JSON file (defaulting to `theme.json`). The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
 -   **Slide Templates:** Supports 7 multiple layout templates including section titles, quotes, columns, and images.
 -   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
@@ -29,7 +29,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 
 4.  **Directory Structure:** The application can run with files in the current directory or a specified directory.
     -   `slides.json`: Your presentation content.
-    -   `template.json`: Your theme configuration.
+    -   `theme.json`: Your theme configuration.
     -   `static/`: Contains `script.js` and `style.css`.
     -   `templates/`: Contains `index.html`.
 
@@ -71,6 +71,8 @@ Create a `slides.json` file. This file contains the metadata and an array of sli
 
 #### Supported Templates
 
+For a precise definition of the JSON schema for each slide type, please refer to the [slide_template_definition.md](slide_template_definition.md) file.
+
 *Note: All slide templates support an optional `speaker_notes` field (string) inside the `data` object, which can contain Markdown text for the speaker notes. All templates also support an optional `image_uri` field if they include an image.*
 
 1.  **`section_title`**: A large centered title.
@@ -90,7 +92,7 @@ Create a `slides.json` file. This file contains the metadata and an array of sli
 
 ### 2. Customize Your Theme
 
-Create a `template.json` file to customize the look and feel of your presentation.
+Create a `theme.json` file to customize the look and feel of your presentation.
 
 ```json
 {
@@ -111,21 +113,21 @@ Execute the Python script from your project's root directory:
 python app.py
 ```
 
-By default, the app looks for `slides.json` and `template.json` in the current directory.
+By default, the app looks for `slides.json` and `theme.json` under the `slides/` directory.
 
 #### Command-line Arguments
 
--   `--slides`: Specify a custom slides JSON file.
+-   `--slides`: Specify a custom slides JSON file. If only a filename is provided, it is looked for in the directory specified by `--slides-dir`.
     ```bash
     python app.py --slides=my_presentation.json
     ```
--   `--template`: Specify a custom template JSON file.
+-   `--theme`: Specify a custom theme JSON file. If only a filename is provided, it is looked for in the directory specified by `--slides-dir`.
     ```bash
-    python app.py --template=my_theme.json
+    python app.py --theme=my_theme.json
     ```
--   `--slides-dir`: Specify a directory to look for `slides.json` and `template.json`.
+-   `--slides-dir`: Specify a directory to look for default `slides.json` and `theme.json` files (default: `slides`). This directory is also used to resolve simple filenames provided via `--slides` or `--theme`.
     ```bash
-    python app.py --slides-dir=slides_demo
+    python app.py --slides-dir=my_content_folder
     ```
 
 Open your web browser and navigate to `http://127.0.0.1:5000` to see your presentation.
