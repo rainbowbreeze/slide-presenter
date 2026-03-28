@@ -4,12 +4,12 @@ This document provides a high-level overview of the SelfHosted Slide Presenter a
 
 ## Project Description
 
-SelfHosted Slide Presenter is a lightweight, file-based presentation tool. It runs as a local web server using Python and Flask, rendering presentations in a web browser. Slides are generated from a single structured JSON file (`presentation.json`), allowing for rapid content creation using a predefined set of slide templates.
+SelfHosted Slide Presenter is a lightweight, file-based presentation tool. It runs as a local web server using Python and Flask, rendering presentations in a web browser. Slides are defined in a single structured JSON file (defaulting to `slides.json`), allowing for rapid content creation using a predefined set of slide templates.
 
 The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
--   Custom theming via a `template.json` file (fonts, colors, etc.).
+-   Custom theming via a template JSON file (defaulting to `template.json`).
 -   Support for 7 different slide templates: section titles, quotes, simple content, double column content, content with images, title and image, and full-screen images.
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   Keyboard and mouse navigation.
@@ -26,14 +26,15 @@ The application follows a simple client-server model:
 -   **`app.py`:** The main application file. It contains two primary routes:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
-        1.  Reads and parses `presentation.json` from the `SLIDES_DIR` directory to extract slide data and metadata.
-        2.  Reads the configured template JSON (defaulting to `template.json`) for theming information.
+        1.  Reads and parses the configured slides JSON file to extract slide data and metadata.
+        2.  Reads the configured template JSON for theming information.
         3.  Returns a JSON payload containing the structured slide data, metadata, and template configuration.
-    -   `/slides/<path:filename>`: Serves static assets (like local images) from the configured `SLIDES_DIR`.
+    -   `/slides/<path:filename>`: Serves static assets (like local images) from the directory containing the slides file.
 -   **Command-line Arguments:**
-    -   `--slide-dir`: Specifies the directory containing slide files (default: `slides_demo/`).
-    -   `--template`: Specifies the template file name to use (default: `template.json`).
--   **Content Directory:** The `slides_demo/` directory holds all user-facing content, including the presentation JSON and the theme template.
+    -   `--slides`: Specifies the slides JSON file (default: `slides.json`).
+    -   `--template`: Specifies the template JSON file (default: `template.json`).
+    -   `--slides-dir`: Specifies a directory to look for default `slides.json` and `template.json` files.
+-   **Content Directory:** The `slides_demo/` directory is provided as an example containing a `slides.json` and `template.json`.
 
 ### Frontend
 
