@@ -1,6 +1,7 @@
 {
     "font-main": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     "bg-color": "#1c1c1c",
+    "background-image": "deck_background.jpg",
     "text-color": "#e0e0e0",
     "text-font-size": "16px",
     "title-color": "#ffffff",

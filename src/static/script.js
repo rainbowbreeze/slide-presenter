@@ -291,8 +291,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clear previous slide content and background styles
         slideContainer.innerHTML = '';
-        slideContainer.style.backgroundImage = 'none';
         slideContainer.classList.remove('image-full-screen-mode');
+
+        // Apply theme's background image if present, except for image_full_screen or speaker mode
+        if (theme['background-image'] && slide.template !== 'image_full_screen' && !isSpeakerMode) {
+            const bgUri = theme['background-image'];
+            const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
+                ? bgUri 
+                : `/slides/${bgUri}`;
+            slideContainer.style.backgroundImage = `url('${bgUrl}')`;
+            slideContainer.style.backgroundSize = 'cover';
+            slideContainer.style.backgroundPosition = 'center center';
+            slideContainer.style.backgroundRepeat = 'no-repeat';
+        } else {
+            slideContainer.style.backgroundImage = 'none';
+        }
         
         // Ensure the footer is displayed by default (will be hidden in speaker mode or on some slide types)
         footer.style.display = 'block';
@@ -480,8 +493,25 @@ document.addEventListener('DOMContentLoaded', () => {
             contentDiv.style.backgroundSize = 'contain';
             contentDiv.style.backgroundPosition = 'center center';
             contentDiv.style.backgroundRepeat = 'no-repeat';
+            
+            // Clear container background for full screen image
+            container.style.backgroundImage = 'none';
         } else {
             contentDiv.innerHTML = generated.html;
+
+            // Apply theme's background image if present
+            if (theme['background-image']) {
+                const bgUri = theme['background-image'];
+                const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
+                    ? bgUri 
+                    : `/slides/${bgUri}`;
+                container.style.backgroundImage = `url('${bgUrl}')`;
+                container.style.backgroundSize = 'cover';
+                container.style.backgroundPosition = 'center center';
+                container.style.backgroundRepeat = 'no-repeat';
+            } else {
+                container.style.backgroundImage = 'none';
+            }
         }
         
         container.appendChild(contentDiv);
