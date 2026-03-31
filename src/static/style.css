@@ -403,20 +403,19 @@ body.resizing-active {
 */
 .preview-container .mini-preview-content {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 1920px; /* Arbitrary large assumed resolution */
+    top: 50%;
+    left: 50%;
+    width: 1920px; /* Reference large resolution */
     height: 1080px; 
-    transform-origin: top left;
-    /* We will use a CSS transform scale to fit. 
-       Since container is responsive, using container queries would be ideal,
-       but a simple scale hack based on standard sizes works for previews. 
-       Let's use a very large scale down */
-    transform: scale(calc(100cqw / 1920));
+    transform: translate(-50%, -50%) scale(var(--preview-scale, 0.1));
+    transform-origin: center;
+    pointer-events: none; /* Previews should not be interactive */
 }
 
 .preview-container {
-    container-type: inline-size;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .end-of-presentation-preview {

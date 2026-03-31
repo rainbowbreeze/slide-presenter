@@ -1,16 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Detect speaker mode and initial slide from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSpeakerMode = urlParams.get('mode') === 'speaker';
+    const initialSlide = parseInt(urlParams.get('slide'), 10) || 0;
+
     // State variables for the presentation
     let slides = [];
     let theme = {};
     let metadata = {};
-    let currentSlide = 0;
+    let currentSlide = initialSlide;
     let speakerFontSize = 2.5; // Default font size for speaker notes
     let isResizing = false; // Flag for resizing state
     let blockClick = false; // Flag to temporarily block navigation clicks
-
-    // Detect speaker mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const isSpeakerMode = urlParams.get('mode') === 'speaker';
 
     // Set up synchronization channel
     const syncChannel = new BroadcastChannel('slide-sync');
@@ -270,6 +271,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Dynamically scales the mini-previews to fit their containers.
+     */
+    function resizePreviews() {
+        if (!isSpeakerMode) return;
+        
+        const containers = document.querySelectorAll('.preview-container');
+        containers.forEach(container => {
+            const previewContent = container.querySelector('.mini-preview-content');
+            if (previewContent) {
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+                
+                // Calculate the scale to fit while maintaining 16:9 aspect ratio
+                // using 1920x1080 as the reference resolution.
+                const scaleX = containerWidth / 1920;
+                const scaleY = containerHeight / 1080;
+                const scale = Math.min(scaleX, scaleY);
+                
+                previewContent.style.setProperty('--preview-scale', scale);
+            }
+        });
+    }
+
+    /**
      * Renders a specific slide based on its index in the slides array.
      * @param {number} index - The index of the slide to render.
      * @param {boolean} broadcast - Whether to broadcast this slide change to other windows.
@@ -357,6 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             setupResizer();
+            // Ensure previews are scaled correctly after they are added to the DOM
+            setTimeout(resizePreviews, 0);
             return;
         }
 
@@ -405,6 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
+    window.addEventListener('resize', resizePreviews);
+
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             return;
@@ -429,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 's':
                 if (!isSpeakerMode) {
-                    window.open(window.location.pathname + '?mode=speaker', 'SpeakerNotes', 'width=800,height=600');
+                    window.open(window.location.pathname + `?mode=speaker&slide=${currentSlide}`, 'SpeakerNotes', 'width=800,height=600');
                 }
                 break;
             case 'h':
@@ -553,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newHeight > 50 && newHeight < window.innerHeight - 150) {
             notesArea.style.flex = 'none';
             notesArea.style.height = `${newHeight}px`;
+            resizePreviews(); // Recalculate preview scaling during resize
         }
     }
 
