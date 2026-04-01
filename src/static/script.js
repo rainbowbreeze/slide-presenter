@@ -441,12 +441,14 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (e.key) {
             case 'ArrowRight':
             case 'ArrowDown':
+            case 'PageDown':
             case 'd':
             case ' ':
                 navigate(1);
                 break;
             case 'ArrowLeft':
             case 'ArrowUp':
+            case 'PageUp':
             case 'a':
                 navigate(-1);
                 break;
