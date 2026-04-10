@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements
     const slideContainer = document.getElementById('slide-container');
+    const printContainer = document.getElementById('print-container');
     const footer = document.getElementById('footer');
     const helpOverlay = document.getElementById('help-overlay');
 
@@ -407,6 +408,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Renders all slides into the print container to prepare for PDF export or printing.
+     */
+    function preparePrintView() {
+        if (!printContainer) return;
+        
+        // Clear previous print content
+        printContainer.innerHTML = '';
+        
+        slides.forEach((slide, index) => {
+            const slideDiv = document.createElement('div');
+            slideDiv.className = 'print-slide';
+            
+            // Replicate background logic from renderSlide
+            if (theme['background-image'] && slide.template !== 'image_full_screen') {
+                const bgUri = theme['background-image'];
+                const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
+                    ? bgUri 
+                    : `/slides/${bgUri}`;
+                slideDiv.style.backgroundImage = `url('${bgUrl}')`;
+                slideDiv.style.backgroundSize = 'cover';
+                slideDiv.style.backgroundPosition = 'center center';
+                slideDiv.style.backgroundRepeat = 'no-repeat';
+            }
+            
+            // Apply theme colors
+            if (theme['bg-color']) slideDiv.style.backgroundColor = theme['bg-color'];
+            if (theme['text-color']) slideDiv.style.color = theme['text-color'];
+            if (theme['font-main']) slideDiv.style.fontFamily = theme['font-main'];
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'slide-content';
+
+            const generated = generateSlideHTML(slide);
+            
+            if (slide.template === 'image_full_screen') {
+                let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
+                let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
+                slideDiv.classList.add('image-full-screen-mode');
+                slideDiv.style.backgroundImage = `url('${fsUrl}')`;
+                slideDiv.style.backgroundSize = 'contain';
+                slideDiv.style.backgroundPosition = 'center center';
+                slideDiv.style.backgroundRepeat = 'no-repeat';
+            }
+
+            contentDiv.classList.add(...generated.classList);
+            contentDiv.innerHTML = generated.html;
+            slideDiv.appendChild(contentDiv);
+            
+            // Add footer to each printed slide
+            const slideFooter = document.createElement('div');
+            slideFooter.className = 'print-footer';
+            slideFooter.textContent = footer.textContent;
+            slideDiv.appendChild(slideFooter);
+            
+            printContainer.appendChild(slideDiv);
+        });
+    }
+
+    /**
      * Navigates the presentation forwards or backwards by a given offset.
      */
     function navigate(direction) {
@@ -464,11 +524,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'h':
-                helpOverlay.classList.remove('hidden');
-                break;
+               helpOverlay.classList.remove('hidden');
+               break;
+            case 'p':
+               preparePrintView();
+               window.print();
+               break;
             case 'Escape':
-                helpOverlay.classList.add('hidden');
-                break;
+               helpOverlay.classList.add('hidden');
+               break;
         }
     });
 

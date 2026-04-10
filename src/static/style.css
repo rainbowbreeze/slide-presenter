@@ -454,3 +454,58 @@ body.resizing-active {
 .speaker-notes-content li {
     margin-bottom: 0.5em;
 }
+
+/* Print Styles */
+#print-container {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: landscape;
+        margin: 0;
+    }
+
+    body, html {
+        height: auto;
+        overflow: visible;
+        background-color: white !important;
+    }
+
+    #slide-container, #footer, #help-overlay, .speaker-top-bar {
+        display: none !important;
+    }
+
+    #print-container {
+        display: block !important;
+        width: 100%;
+    }
+
+    .print-slide {
+        page-break-after: always;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 5%;
+        position: relative;
+        overflow: hidden;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .print-slide.image-full-screen-mode {
+        padding: 0;
+    }
+
+    .print-footer {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        opacity: 0.6;
+    }
+}
