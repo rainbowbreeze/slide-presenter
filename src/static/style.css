@@ -494,7 +494,7 @@ body.resizing-active {
         overflow: hidden;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        font-size: 0.85em;
+        font-size: 0.75em;
     }
 
     .print-slide.image-full-screen-mode {
