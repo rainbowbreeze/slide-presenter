@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Detect speaker mode and initial slide from URL
+    // Detect speaker mode and initial slide from URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const isSpeakerMode = urlParams.get('mode') === 'speaker';
     const initialSlide = parseInt(urlParams.get('slide'), 10) || 0;
@@ -9,11 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let theme = {};
     let metadata = {};
     let currentSlide = initialSlide;
-    let speakerFontSize = 2.5; // Default font size for speaker notes
-    let isResizing = false; // Flag for resizing state
-    let blockClick = false; // Flag to temporarily block navigation clicks
+    let speakerFontSize = 2.5; // Default font size (em) for speaker notes
+    let speakerNotesHeight = null; // Persisted custom height (px) for speaker notes area after resizing
+    let isResizing = false; // Flag for active drag-resizing state
+    let blockClick = false; // Flag to temporarily block navigation clicks right after resizing
 
-    // Set up synchronization channel
+    // Set up cross-window synchronization channel
     const syncChannel = new BroadcastChannel('slide-sync');
     syncChannel.onmessage = (event) => {
         if (event.data && event.data.type === 'SLIDE_CHANGE') {
@@ -32,8 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isSpeakerMode) {
         document.body.classList.add('speaker-mode-active');
-        
-        // Inject top bar
+
+        // Inject speaker mode top bar with font size and timer controls
         const topBar = document.createElement('div');
         topBar.className = 'speaker-top-bar';
         topBar.innerHTML = `
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.insertBefore(topBar, slideContainer);
-        
+
         // Font size controls
         document.getElementById('btn-font-increase').addEventListener('click', () => {
             speakerFontSize += 0.2;
@@ -57,199 +58,249 @@ document.addEventListener('DOMContentLoaded', () => {
             speakerFontSize = Math.max(1, speakerFontSize - 0.2);
             updateSpeakerFontSize();
         });
-        
+
         function updateSpeakerFontSize() {
             const content = document.querySelector('.speaker-notes-content');
             if (content) {
-                content.style.fontSize = speakerFontSize + 'em';
+                content.style.fontSize = `${speakerFontSize}em`;
             }
         }
 
-        // Timer controls
+        // Presentation timer controls
         let startTime = Date.now();
         setInterval(updateTimer, 1000);
-        
+
         function updateTimer() {
             const now = Date.now();
             const diff = Math.floor((now - startTime) / 1000);
             const h = String(Math.floor(diff / 3600)).padStart(2, '0');
             const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
             const s = String(diff % 60).padStart(2, '0');
-            document.getElementById('speaker-timer').textContent = `${h}:${m}:${s}`;
+            const timerEl = document.getElementById('speaker-timer');
+            if (timerEl) {
+                timerEl.textContent = `${h}:${m}:${s}`;
+            }
         }
-        
-        document.getElementById('btn-timer-reset').addEventListener('click', () => {
+
+        const resetBtn = document.getElementById('btn-timer-reset');
+        resetBtn.addEventListener('click', () => {
             startTime = Date.now();
             updateTimer();
-            // Don't focus the button so spacebar navigation still works
-            document.getElementById('btn-timer-reset').blur();
+            // Blur the button so spacebar navigation continues to work as expected
+            resetBtn.blur();
         });
     }
 
     /**
-     * Initializes the presentation by fetching slide data and the theme from the API.
-     * Applies the theme and renders the initial slide.
+     * Resolves an image or asset URI to a full URL or the local `/slides/` static route.
+     * @param {string} uri - The raw URI from the slide or theme JSON.
+     * @param {string} fallback - Fallback URL if uri is empty.
+     * @returns {string} The resolved URL string.
+     */
+    function resolveAssetUrl(uri, fallback = '') {
+        const targetUri = uri || fallback;
+        if (!targetUri) return '';
+        if (targetUri.startsWith('http://') || targetUri.startsWith('https://')) {
+            return targetUri;
+        }
+        return `/slides/${targetUri}`;
+    }
+
+    /**
+     * Parses inline Markdown if marked.js is loaded; returns an empty string for falsy values.
+     * @param {string} text - Raw text that may contain inline Markdown.
+     * @returns {string} HTML string with inline Markdown rendered.
+     */
+    function parseInlineMarkdown(text) {
+        if (!text) return '';
+        return typeof marked !== 'undefined' ? marked.parseInline(String(text)) : String(text);
+    }
+
+    /**
+     * Helper to render an optional introductory sentence above bullet points.
+     * @param {string} sentence - The sentence text to render.
+     * @returns {string} HTML string for the sentence element, or empty string.
+     */
+    function renderSentence(sentence) {
+        if (!sentence) return '';
+        return `<div class="sentence">${parseInlineMarkdown(sentence)}</div>`;
+    }
+
+    /**
+     * Helper to render an array of bullet strings into an HTML unordered list.
+     * @param {string[]} bullets - Array of bullet strings.
+     * @returns {string} HTML string for the bullet list, or empty string.
+     */
+    function renderBullets(bullets) {
+        if (!bullets || bullets.length === 0) return '';
+        const itemsHtml = bullets
+            .map(bullet => `<li>${parseInlineMarkdown(bullet)}</li>`)
+            .join('');
+        return `<ul>${itemsHtml}</ul>`;
+    }
+
+    /**
+     * Initializes or reloads the presentation by fetching slide data and the theme from the API.
+     * Applies the theme and renders the current slide (clamped to valid bounds).
      */
     async function initialize() {
         try {
-            // Fetch the presentation data from the backend API
             const response = await fetch('/api/slides');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
-            // Parse the JSON response
-            const data = await response.json();
-            slides = data.slides;
-            theme = data.theme;
-            metadata = data.metadata;
 
-            // Apply the visual theme and render the current slide
+            const data = await response.json();
+            slides = data.slides || [];
+            theme = data.theme || {};
+            metadata = data.metadata || {};
+
             applyTheme();
-            renderSlide(currentSlide);
-            
-            // Update document title if metadata has a title
+
+            if (slides.length > 0) {
+                // Clamp currentSlide to valid bounds in case the deck was shortened or URL param is out of range
+                const validIndex = Math.min(Math.max(0, currentSlide), slides.length - 1);
+                renderSlide(validIndex, false);
+            } else {
+                slideContainer.innerHTML = '<div class="slide-content"><h1>No slides found</h1></div>';
+            }
+
             if (metadata && metadata.title) {
                 document.title = isSpeakerMode ? `[Notes] ${metadata.title}` : metadata.title;
             }
         } catch (error) {
-            console.error("Error initializing presentation:", error);
-            // Display a user-friendly error message if loading fails
+            console.error('Error initializing presentation:', error);
             slideContainer.innerHTML = `<div class="slide-content"><h1>Error loading presentation</h1><p>${error.message}</p></div>`;
         }
     }
 
     /**
-     * Applies the visual theme settings (colors, fonts) fetched from the backend 
-     * to the corresponding DOM elements.
+     * Applies visual theme settings (colors, fonts, sizes) as CSS Custom Properties on :root
+     * and updates the footer text.
      */
     function applyTheme() {
-        // Only apply background colors if not in speaker mode, or let speaker mode override via CSS
-        if (!isSpeakerMode) {
-            if (theme['bg-color']) document.body.style.backgroundColor = theme['bg-color'];
-            if (theme['text-color']) document.body.style.color = theme['text-color'];
-        }
-        if (theme['font-main']) document.body.style.fontFamily = theme['font-main'];
-        
-        // Apply general text size if provided
-        if (theme['text-font-size']) document.body.style.fontSize = theme['text-font-size'];
-        
-        // Configure the footer styling based on the theme
-        if (theme['footer-font-size']) footer.style.fontSize = theme['footer-font-size'];
-        if (theme['footer-text-color']) footer.style.color = theme['footer-text-color'];
-        
-        // Fallback to metadata title if footer text is not set
-        footer.textContent = theme['footer-text'] || (metadata && metadata.title) || '';
+        const rootStyle = document.documentElement.style;
 
-        // Inject dynamic styles for elements that need specific theme properties
-        let dynamicStyles = document.getElementById('dynamic-theme-styles');
-        if (!dynamicStyles) {
-            dynamicStyles = document.createElement('style');
-            dynamicStyles.id = 'dynamic-theme-styles';
-            document.head.appendChild(dynamicStyles);
-        }
-        
-        let styleContent = '';
-        if (theme['title-color']) {
-            styleContent += `h1, h2, h3 { color: ${theme['title-color']} !important; } `;
-        }
-        if (theme['title-font-size']) {
-            styleContent += `.slide-content h1 { font-size: ${theme['title-font-size']} !important; } `;
-        }
-        dynamicStyles.textContent = styleContent;
-    }
+        const themeMappings = {
+            '--theme-bg-color': theme['bg-color'],
+            '--theme-text-color': theme['text-color'],
+            '--theme-font-main': theme['font-main'],
+            '--theme-text-font-size': theme['text-font-size'],
+            '--theme-title-color': theme['title-color'],
+            '--theme-title-font-size': theme['title-font-size'],
+            '--theme-footer-font-size': theme['footer-font-size'],
+            '--theme-footer-text-color': theme['footer-text-color']
+        };
 
-    /**
-     * Helper to render an optional introductory sentence above bullets.
-     */
-    function renderSentence(sentence) {
-        if (!sentence) return '';
-        // If marked.js is available, we can parse inline markdown
-        let content = typeof marked !== 'undefined' ? marked.parseInline(sentence) : sentence;
-        return `<div class="sentence">${content}</div>`;
-    }
-
-    /**
-     * Helper to render an array of bullets.
-     */
-    function renderBullets(bullets) {
-        if (!bullets || bullets.length === 0) return '';
-        let html = '<ul>';
-        bullets.forEach(bullet => {
-            // If marked.js is available, we can parse inline markdown
-            let content = typeof marked !== 'undefined' ? marked.parseInline(bullet) : bullet;
-            html += `<li>${content}</li>`;
+        Object.entries(themeMappings).forEach(([cssVar, value]) => {
+            if (value) {
+                rootStyle.setProperty(cssVar, value);
+            } else {
+                rootStyle.removeProperty(cssVar);
+            }
         });
-        html += '</ul>';
-        return html;
+
+        // Fallback to metadata title if footer text is not explicitly set in the theme
+        footer.textContent = theme['footer-text'] || (metadata && metadata.title) || '';
     }
 
     /**
-     * Generates the inner HTML for a specific slide data object based on its template.
+     * Applies the appropriate background image (full-screen slide image or theme background)
+     * to a target slide container element.
+     * @param {HTMLElement} targetEl - The container element (#slide-container, .print-slide, or .preview-container).
+     * @param {Object} slide - The slide object being rendered.
+     */
+    function applySlideBackground(targetEl, slide) {
+        if (!targetEl || !slide) return;
+        const data = slide.data || {};
+
+        if (slide.template === 'image_full_screen') {
+            const fsUrl = resolveAssetUrl(data.image_uri, 'https://picsum.photos/1920/1080');
+            targetEl.classList.add('image-full-screen-mode');
+            targetEl.style.backgroundImage = `url('${fsUrl}')`;
+            targetEl.style.backgroundSize = 'contain';
+            targetEl.style.backgroundPosition = 'center center';
+            targetEl.style.backgroundRepeat = 'no-repeat';
+        } else if (theme['background-image']) {
+            const bgUrl = resolveAssetUrl(theme['background-image']);
+            targetEl.classList.remove('image-full-screen-mode');
+            targetEl.style.backgroundImage = `url('${bgUrl}')`;
+            targetEl.style.backgroundSize = 'cover';
+            targetEl.style.backgroundPosition = 'center center';
+            targetEl.style.backgroundRepeat = 'no-repeat';
+        } else {
+            targetEl.classList.remove('image-full-screen-mode');
+            targetEl.style.backgroundImage = 'none';
+        }
+    }
+
+    /**
+     * Generates the inner HTML and CSS class list for a specific slide object based on its template.
+     * @param {Object} slide - The slide object containing `template` and `data`.
+     * @returns {{ html: string, classList: string[], data: Object }}
      */
     function generateSlideHTML(slide) {
         const data = slide.data || {};
         let html = '';
-        let classList = [];
-        
+        const classList = [];
+
         switch (slide.template) {
             case 'section_title':
                 classList.push('section-title-slide');
                 html = `
-                    <h1>${data.title || ''}</h1>
-                    ${data.sentence ? `<div class="fun-sentence">${data.sentence}</div>` : ''}
+                    <h1>${parseInlineMarkdown(data.title)}</h1>
+                    ${data.sentence ? `<div class="fun-sentence">${parseInlineMarkdown(data.sentence)}</div>` : ''}
                 `;
                 break;
-                
+
             case 'quote_slide':
                 classList.push('quote-slide');
                 html = `
-                    <div class="quote-text">${data.quote || ''}</div>
-                    ${data.attribution ? `<div class="quote-attribution">${data.attribution}</div>` : ''}
+                    <div class="quote-text">${parseInlineMarkdown(data.quote)}</div>
+                    ${data.attribution ? `<div class="quote-attribution">${parseInlineMarkdown(data.attribution)}</div>` : ''}
                 `;
                 break;
-                
+
             case 'content_simple':
                 classList.push('content-simple-slide');
                 html = `
-                    <h1>${data.title || ''}</h1>
+                    <h1>${parseInlineMarkdown(data.title)}</h1>
                     ${renderSentence(data.sentence)}
                     ${renderBullets(data.bullets)}
                 `;
                 break;
-                
-            case 'content_double':
+
+            case 'content_double': {
                 classList.push('content-double-slide');
-                let leftCol = data.column_left || {};
-                let rightCol = data.column_right || {};
+                const leftCol = data.column_left || {};
+                const rightCol = data.column_right || {};
                 html = `
-                    <h1>${data.title || ''}</h1>
+                    <h1>${parseInlineMarkdown(data.title)}</h1>
                     <div class="columns-container">
                         <div class="column">
-                            ${leftCol.sub_heading ? `<h2>${leftCol.sub_heading}</h2>` : ''}
+                            ${leftCol.sub_heading ? `<h2>${parseInlineMarkdown(leftCol.sub_heading)}</h2>` : ''}
                             ${renderSentence(leftCol.sentence)}
                             ${renderBullets(leftCol.bullets)}
                         </div>
                         <div class="column">
-                            ${rightCol.sub_heading ? `<h2>${rightCol.sub_heading}</h2>` : ''}
+                            ${rightCol.sub_heading ? `<h2>${parseInlineMarkdown(rightCol.sub_heading)}</h2>` : ''}
                             ${renderSentence(rightCol.sentence)}
                             ${renderBullets(rightCol.bullets)}
                         </div>
                     </div>
                 `;
                 break;
-                
-            case 'content_and_image':
+            }
+
+            case 'content_and_image': {
                 classList.push('content-and-image-slide');
-                let imagePosClass = data.image_position === 'left' ? 'image-left' : '';
-                let imageUri = data.image_uri || 'https://picsum.photos/800/800'; 
-                let imageUrl = imageUri.startsWith('http://') || imageUri.startsWith('https://') 
-                    ? imageUri 
-                    : `/slides/${imageUri}`;
+                const imagePosClass = data.image_position === 'left' ? 'image-left' : '';
+                const imageUrl = resolveAssetUrl(data.image_uri, 'https://picsum.photos/800/800');
                 html = `
                     <div class="content-image-container ${imagePosClass}">
                         <div class="text-side">
-                            <h1>${data.title || ''}</h1>
+                            <h1>${parseInlineMarkdown(data.title)}</h1>
+                            ${renderSentence(data.sentence)}
                             ${renderBullets(data.bullets)}
                         </div>
                         <div class="image-side" style="background-image: url('${imageUrl}');">
@@ -257,108 +308,103 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 break;
-                
-            case 'title_and_image':
+            }
+
+            case 'title_and_image': {
                 classList.push('title-and-image-slide');
-                let tiUri = data.image_uri || 'https://picsum.photos/800/600'; 
-                let tiUrl = tiUri.startsWith('http://') || tiUri.startsWith('https://') 
-                    ? tiUri 
-                    : `/slides/${tiUri}`;
+                const tiUrl = resolveAssetUrl(data.image_uri, 'https://picsum.photos/800/600');
                 html = `
-                    <h1>${data.title || ''}</h1>
+                    <h1>${parseInlineMarkdown(data.title)}</h1>
                     <div class="centered-image-container">
                         <img src="${tiUrl}" alt="${data.title || 'Slide Image'}" />
                     </div>
                 `;
                 break;
-                
+            }
+
             case 'image_full_screen':
-                classList.push('image-full-screen-content'); // Just a placeholder class, styling is handled on container usually
+                classList.push('image-full-screen-content');
                 break;
-                
+
             default:
                 html = `<h1>Unknown template: ${slide.template}</h1>`;
                 break;
         }
-        
+
         return { html, classList, data };
     }
 
     /**
-     * Dynamically scales the mini-previews to fit their containers.
+     * Dynamically scales the speaker mode mini-previews to fit their containers
+     * while preserving a 16:9 (1920x1080) reference aspect ratio.
      */
     function resizePreviews() {
         if (!isSpeakerMode) return;
-        
+
         const containers = document.querySelectorAll('.preview-container');
         containers.forEach(container => {
             const previewContent = container.querySelector('.mini-preview-content');
             if (previewContent) {
                 const containerWidth = container.clientWidth;
                 const containerHeight = container.clientHeight;
-                
-                // Calculate the scale to fit while maintaining 16:9 aspect ratio
-                // using 1920x1080 as the reference resolution.
+
                 const scaleX = containerWidth / 1920;
                 const scaleY = containerHeight / 1080;
                 const scale = Math.min(scaleX, scaleY);
-                
+
                 previewContent.style.setProperty('--preview-scale', scale);
             }
         });
     }
 
     /**
+     * Updates the `?slide=` URL query parameter without reloading the page so refreshes preserve position.
+     * @param {number} index - The current 0-based slide index.
+     */
+    function syncUrlSlideParam(index) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('slide', index);
+        window.history.replaceState(null, '', url.toString());
+    }
+
+    /**
      * Renders a specific slide based on its index in the slides array.
      * @param {number} index - The index of the slide to render.
-     * @param {boolean} broadcast - Whether to broadcast this slide change to other windows.
+     * @param {boolean} broadcast - Whether to broadcast this slide change to other synchronized windows.
      */
     function renderSlide(index, broadcast = true) {
-        // Ensure the requested index is within bounds
         if (index < 0 || index >= slides.length) {
             return;
         }
-        
-        // Update the current slide state
+
         currentSlide = index;
         const slide = slides[index];
         const data = slide.data || {};
-        
+
+        syncUrlSlideParam(currentSlide);
+
         if (broadcast) {
             syncChannel.postMessage({ type: 'SLIDE_CHANGE', index: currentSlide });
         }
 
-        // Clear previous slide content and background styles
+        // Clear previous slide content
         slideContainer.innerHTML = '';
-        slideContainer.classList.remove('image-full-screen-mode');
-
-        // Apply theme's background image if present, except for image_full_screen or speaker mode
-        if (theme['background-image'] && slide.template !== 'image_full_screen' && !isSpeakerMode) {
-            const bgUri = theme['background-image'];
-            const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
-                ? bgUri 
-                : `/slides/${bgUri}`;
-            slideContainer.style.backgroundImage = `url('${bgUrl}')`;
-            slideContainer.style.backgroundSize = 'cover';
-            slideContainer.style.backgroundPosition = 'center center';
-            slideContainer.style.backgroundRepeat = 'no-repeat';
-        } else {
-            slideContainer.style.backgroundImage = 'none';
-        }
-        
-        // Ensure the footer is displayed by default (will be hidden in speaker mode or on some slide types)
-        footer.style.display = 'block';
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'slide-content';
 
         if (isSpeakerMode) {
+            slideContainer.classList.remove('image-full-screen-mode');
+            slideContainer.style.backgroundImage = 'none';
             footer.style.display = 'none';
             contentDiv.classList.add('speaker-notes-container');
-            
-            // Layout structure for speaker mode
+
+            const notesHeightStyle = speakerNotesHeight !== null
+                ? `flex: none; height: ${speakerNotesHeight}px;`
+                : '';
+
             contentDiv.innerHTML = `
-                <div class="speaker-notes-area">
+                <div class="speaker-notes-area" style="${notesHeightStyle}">
                     <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
                     <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em"></div>
                 </div>
@@ -375,46 +421,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             slideContainer.appendChild(contentDiv);
-            
-            // Populate Notes
-            let notesContent = data.speaker_notes || '';
-            let notesHtml = notesContent 
-                ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent) 
+
+            // Populate speaker notes
+            const notesContent = data.speaker_notes || '';
+            const notesHtml = notesContent
+                ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent)
                 : '<p><em>No notes for this slide.</em></p>';
-            
+
             const notesContentEl = contentDiv.querySelector('.speaker-notes-content');
             if (notesContentEl) {
                 notesContentEl.innerHTML = notesHtml;
             }
-            
-            // Populate Previews
+
+            // Populate current and next slide mini-previews
             renderMiniPreview(index, document.getElementById('preview-current'));
             if (index + 1 < slides.length) {
                 renderMiniPreview(index + 1, document.getElementById('preview-next'));
             } else {
                 document.getElementById('preview-next').innerHTML = '<div class="end-of-presentation-preview">End of Presentation</div>';
             }
-            
+
             setupResizer();
-            // Ensure previews are scaled correctly after they are added to the DOM
             setTimeout(resizePreviews, 0);
             return;
         }
 
-        const generated = generateSlideHTML(slide);
-        
-        if (slide.template === 'image_full_screen') {
-            // Apply background to slideContainer directly
-            let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
-            let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
-            slideContainer.classList.add('image-full-screen-mode');
-            slideContainer.style.backgroundImage = `url('${fsUrl}')`;
-            slideContainer.style.backgroundSize = 'contain';
-            slideContainer.style.backgroundPosition = 'center center';
-            slideContainer.style.backgroundRepeat = 'no-repeat';
-            footer.style.display = 'none';
-        }
+        // Normal presentation mode
+        applySlideBackground(slideContainer, slide);
+        footer.style.display = slide.template === 'image_full_screen' ? 'none' : 'block';
 
+        const generated = generateSlideHTML(slide);
         contentDiv.classList.add(...generated.classList);
         contentDiv.innerHTML = generated.html;
         slideContainer.appendChild(contentDiv);
@@ -425,79 +461,55 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function preparePrintView() {
         if (!printContainer) return;
-        
-        // Clear previous print content
+
         printContainer.innerHTML = '';
-        
-        slides.forEach((slide, index) => {
+
+        slides.forEach((slide) => {
             const slideDiv = document.createElement('div');
             slideDiv.className = 'print-slide';
-            
-            // Replicate background logic from renderSlide
-            if (theme['background-image'] && slide.template !== 'image_full_screen') {
-                const bgUri = theme['background-image'];
-                const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
-                    ? bgUri 
-                    : `/slides/${bgUri}`;
-                slideDiv.style.backgroundImage = `url('${bgUrl}')`;
-                slideDiv.style.backgroundSize = 'cover';
-                slideDiv.style.backgroundPosition = 'center center';
-                slideDiv.style.backgroundRepeat = 'no-repeat';
-            }
-            
-            // Apply theme colors
-            if (theme['bg-color']) slideDiv.style.backgroundColor = theme['bg-color'];
-            if (theme['text-color']) slideDiv.style.color = theme['text-color'];
-            if (theme['font-main']) slideDiv.style.fontFamily = theme['font-main'];
+
+            applySlideBackground(slideDiv, slide);
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'slide-content';
 
             const generated = generateSlideHTML(slide);
-            
-            if (slide.template === 'image_full_screen') {
-                let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
-                let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
-                slideDiv.classList.add('image-full-screen-mode');
-                slideDiv.style.backgroundImage = `url('${fsUrl}')`;
-                slideDiv.style.backgroundSize = 'contain';
-                slideDiv.style.backgroundPosition = 'center center';
-                slideDiv.style.backgroundRepeat = 'no-repeat';
-            }
-
             contentDiv.classList.add(...generated.classList);
             contentDiv.innerHTML = generated.html;
             slideDiv.appendChild(contentDiv);
-            
-            // Add footer to each printed slide
-            const slideFooter = document.createElement('div');
-            slideFooter.className = 'print-footer';
-            slideFooter.textContent = footer.textContent;
-            slideDiv.appendChild(slideFooter);
-            
+
+            // Add footer to each printed slide except full-screen images
+            if (slide.template !== 'image_full_screen') {
+                const slideFooter = document.createElement('div');
+                slideFooter.className = 'print-footer';
+                slideFooter.textContent = footer.textContent;
+                slideDiv.appendChild(slideFooter);
+            }
+
             printContainer.appendChild(slideDiv);
         });
     }
 
     /**
      * Navigates the presentation forwards or backwards by a given offset.
+     * @param {number} direction - Slide offset (+1 for next, -1 for previous).
      */
     function navigate(direction) {
         const newIndex = currentSlide + direction;
         if (newIndex >= 0 && newIndex < slides.length) {
-            renderSlide(newIndex); // This broadcasts naturally
+            renderSlide(newIndex);
         }
     }
 
     /**
-     * Prompts the user to jump directly to a specific slide number.
+     * Prompts the user to jump directly to a specific 1-based slide number.
      */
     function jumpToSlide() {
         const slideNumberStr = prompt('Jump to slide number:');
         if (slideNumberStr) {
             const slideNumber = parseInt(slideNumberStr, 10);
             if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
-                renderSlide(slideNumber - 1); // This broadcasts naturally
+                renderSlide(slideNumber - 1);
             } else {
                 alert('Invalid slide number.');
             }
@@ -533,40 +545,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 's':
                 if (!isSpeakerMode) {
-                    window.open(window.location.pathname + `?mode=speaker&slide=${currentSlide}`, 'SpeakerNotes', 'width=800,height=600');
+                    window.open(`${window.location.pathname}?mode=speaker&slide=${currentSlide}`, 'SpeakerNotes', 'width=800,height=600');
                 }
                 break;
             case 'h':
-               helpOverlay.classList.remove('hidden');
-               break;
+                helpOverlay.classList.remove('hidden');
+                break;
             case 'p':
-               preparePrintView();
-               window.print();
-               break;
+                preparePrintView();
+                window.print();
+                break;
             case 'Escape':
-               helpOverlay.classList.add('hidden');
-               break;
+                helpOverlay.classList.add('hidden');
+                break;
         }
     });
 
     document.addEventListener('click', (e) => {
-        if (blockClick) return; // Prevent navigation if we just finished a resize
-        
-        // Find speaker-specific elements to ignore
+        if (blockClick) return; // Prevent accidental navigation immediately after resizing
+
         const topBar = document.querySelector('.speaker-top-bar');
         const resizer = document.querySelector('.speaker-resizer');
         const previewArea = document.querySelector('.speaker-preview-area');
-        
-        if (e.target.tagName === 'A' || 
-            helpOverlay.contains(e.target) || 
+
+        if (
+            e.target.tagName === 'A' ||
+            helpOverlay.contains(e.target) ||
             (topBar && topBar.contains(e.target)) ||
             (resizer && resizer.contains(e.target)) ||
-            (previewArea && previewArea.contains(e.target))) {
+            (previewArea && previewArea.contains(e.target))
+        ) {
             return;
         }
 
-        // In speaker mode, clicking the body outside specific areas shouldn't necessarily navigate
-        // unless it's explicitly intended. Let's restrict it to the notes area for better control.
+        // In speaker mode, restrict click-to-advance to the notes area
         if (isSpeakerMode) {
             const notesArea = document.querySelector('.speaker-notes-area');
             if (notesArea && notesArea.contains(e.target)) {
@@ -583,96 +595,79 @@ document.addEventListener('DOMContentLoaded', () => {
         jumpToSlide();
     });
 
+    /**
+     * Renders a scaled-down preview of a slide into a speaker mode preview container.
+     * @param {number} index - Slide index to preview.
+     * @param {HTMLElement} container - Target `.preview-container` element.
+     */
     function renderMiniPreview(index, container) {
         if (!container) return;
         const slide = slides[index];
         if (!slide) return;
-        
-        container.innerHTML = '';
-        const generated = generateSlideHTML(slide);
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'slide-content mini-preview-content ' + generated.classList.join(' ');
-        
-        if (slide.template === 'image_full_screen') {
-            let fsUri = generated.data.image_uri || 'https://picsum.photos/1920/1080';
-            let fsUrl = fsUri.startsWith('http://') || fsUri.startsWith('https://') ? fsUri : `/slides/${fsUri}`;
-            contentDiv.style.backgroundImage = `url('${fsUrl}')`;
-            contentDiv.style.backgroundSize = 'contain';
-            contentDiv.style.backgroundPosition = 'center center';
-            contentDiv.style.backgroundRepeat = 'no-repeat';
-            
-            // Clear container background for full screen image
-            container.style.backgroundImage = 'none';
-        } else {
-            contentDiv.innerHTML = generated.html;
 
-            // Apply theme's background image if present
-            if (theme['background-image']) {
-                const bgUri = theme['background-image'];
-                const bgUrl = bgUri.startsWith('http://') || bgUri.startsWith('https://') 
-                    ? bgUri 
-                    : `/slides/${bgUri}`;
-                container.style.backgroundImage = `url('${bgUrl}')`;
-                container.style.backgroundSize = 'cover';
-                container.style.backgroundPosition = 'center center';
-                container.style.backgroundRepeat = 'no-repeat';
-            } else {
-                container.style.backgroundImage = 'none';
-            }
+        container.innerHTML = '';
+        applySlideBackground(container, slide);
+
+        const generated = generateSlideHTML(slide);
+        const contentDiv = document.createElement('div');
+        contentDiv.className = `slide-content mini-preview-content ${generated.classList.join(' ')}`;
+
+        if (slide.template !== 'image_full_screen') {
+            contentDiv.innerHTML = generated.html;
         }
-        
+
         container.appendChild(contentDiv);
-        
-        // Apply theme to the mini preview container to simulate full slide
-        container.style.backgroundColor = theme['bg-color'] || '#fff';
-        container.style.color = theme['text-color'] || '#000';
-        container.style.fontFamily = theme['font-main'] || 'sans-serif';
     }
 
-    let startY, startNotesHeight;
+    let startY;
+    let startNotesHeight;
 
+    /**
+     * Attaches drag-to-resize behavior to the speaker mode divider.
+     */
     function setupResizer() {
         const resizer = document.querySelector('.speaker-resizer');
         if (!resizer) return;
-        
-        resizer.addEventListener('mousedown', function(e) {
+
+        resizer.addEventListener('mousedown', (e) => {
             isResizing = true;
             startY = e.clientY;
             const notesArea = document.querySelector('.speaker-notes-area');
             startNotesHeight = notesArea.getBoundingClientRect().height;
             document.body.classList.add('resizing-active');
-            
+
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
         });
     }
-    
+
     function handleMouseMove(e) {
         if (!isResizing) return;
         const notesArea = document.querySelector('.speaker-notes-area');
         const previewArea = document.querySelector('.speaker-preview-area');
         if (!notesArea || !previewArea) return;
-        
+
         const dy = e.clientY - startY;
         const newHeight = startNotesHeight + dy;
-        
-        // Min height constraints
+
+        // Enforce minimum height constraints for both notes and preview areas
         if (newHeight > 50 && newHeight < window.innerHeight - 150) {
+            speakerNotesHeight = newHeight;
             notesArea.style.flex = 'none';
             notesArea.style.height = `${newHeight}px`;
-            resizePreviews(); // Recalculate preview scaling during resize
+            resizePreviews();
         }
     }
 
     function handleMouseUp() {
         if (!isResizing) return;
         isResizing = false;
-        
-        // Set blockClick to true for a short duration to prevent the subsequent 
-        // 'click' event from triggering navigation.
+
+        // Block navigation clicks briefly after releasing the resizer
         blockClick = true;
-        setTimeout(() => { blockClick = false; }, 100);
+        setTimeout(() => {
+            blockClick = false;
+        }, 100);
 
         document.body.classList.remove('resizing-active');
         document.removeEventListener('mousemove', handleMouseMove);

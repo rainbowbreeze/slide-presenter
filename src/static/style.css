@@ -1,14 +1,33 @@
+:root {
+    --theme-font-main: sans-serif;
+    --theme-bg-color: #ffffff;
+    --theme-text-color: #000000;
+    --theme-text-font-size: 16px;
+    --theme-title-color: inherit;
+    --theme-footer-font-size: 14px;
+    --theme-footer-text-color: #888888;
+}
+
 body, html {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: sans-serif;
+    font-family: var(--theme-font-main, sans-serif);
+    font-size: var(--theme-text-font-size, 16px);
+    background-color: var(--theme-bg-color, #ffffff);
+    color: var(--theme-text-color, #000000);
 }
 
 h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     color: inherit;
+}
+
+.slide-content h1,
+.slide-content h2,
+.slide-content h3 {
+    color: var(--theme-title-color, inherit);
 }
 
 #slide-container {
@@ -36,7 +55,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 }
 
 .section-title-slide h1 {
-    font-size: 5em;
+    font-size: var(--theme-title-font-size, 5em);
     margin: 0 0 0.2em 0;
 }
 
@@ -86,7 +105,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 }
 
 .content-simple-slide h1 {
-    font-size: 4em;
+    font-size: var(--theme-title-font-size, 4em);
     margin-bottom: 0.5em;
     margin-top: 0;
 }
@@ -100,6 +119,8 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 .content-simple-slide ul {
     font-size: 2em;
     line-height: 1.5;
+    margin-top: 0;
+    padding-left: 1.2em;
 }
 
 .content-simple-slide li {
@@ -114,7 +135,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 }
 
 .content-double-slide > h1 {
-    font-size: 4em;
+    font-size: var(--theme-title-font-size, 4em);
     margin-bottom: 0.5em;
     margin-top: 0;
 }
@@ -150,6 +171,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 .column ul {
     font-size: 1.8em;
     line-height: 1.4;
+    margin-top: 0;
     padding-left: 1.2em;
 }
 
@@ -165,7 +187,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 }
 
 .content-and-image-slide h1 {
-    font-size: 4em;
+    font-size: var(--theme-title-font-size, 4em);
     margin-bottom: 0.5em;
     margin-top: 0;
 }
@@ -189,9 +211,16 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     flex-direction: column;
 }
 
+.text-side .sentence {
+    font-size: 2em;
+    line-height: 1.5;
+    margin-bottom: 0.5em;
+}
+
 .text-side ul {
     font-size: 2em;
     line-height: 1.5;
+    margin-top: 0;
     padding-left: 1.2em;
 }
 
@@ -205,7 +234,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     background-position: center;
     background-repeat: no-repeat;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* Template F: Title and Image */
@@ -216,7 +245,7 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
 }
 
 .title-and-image-slide h1 {
-    font-size: 4em;
+    font-size: var(--theme-title-font-size, 4em);
     margin-bottom: 0.5em;
     margin-top: 0;
 }
@@ -235,23 +264,22 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     max-height: 100%;
     object-fit: contain;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* Template G: Image Full Screen */
-/* Handled mainly via inline styles on slide-container, but we can reset padding if needed */
 #slide-container.image-full-screen-mode {
     padding: 0;
 }
 
-/* Footer & Help Overlay (Unchanged mostly) */
+/* Footer & Help Overlay */
 #footer {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 14px;
-    color: #888;
+    font-size: var(--theme-footer-font-size, 14px);
+    color: var(--theme-footer-text-color, #888888);
 }
 
 #help-overlay {
@@ -362,7 +390,8 @@ body.speaker-mode-active #slide-container {
     flex: none;
 }
 
-.speaker-resizer:hover, body.resizing-active .speaker-resizer {
+.speaker-resizer:hover,
+body.resizing-active .speaker-resizer {
     background-color: #555;
 }
 
@@ -405,29 +434,24 @@ body.resizing-active {
     flex: 1;
     position: relative;
     overflow: hidden;
-    /* Aspect ratio hack for inner container usually needs wrapping, 
-       but we will scale the slide-content to fit */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--theme-bg-color, #ffffff);
+    color: var(--theme-text-color, #000000);
+    font-family: var(--theme-font-main, sans-serif);
 }
 
-/* 
-  We must style the mini slide-content specifically so it scales down 
-  and doesn't blow out the preview box container. 
-*/
+/* Scale the 1920x1080 reference slide-content down to fit the preview box */
 .preview-container .mini-preview-content {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 1920px; /* Reference large resolution */
-    height: 1080px; 
+    width: 1920px;
+    height: 1080px;
     transform: translate(-50%, -50%) scale(var(--preview-scale, 0.1));
     transform-origin: center;
-    pointer-events: none; /* Previews should not be interactive */
-}
-
-.preview-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    pointer-events: none;
 }
 
 .end-of-presentation-preview {
@@ -507,6 +531,9 @@ body.resizing-active {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         font-size: 0.75em;
+        background-color: var(--theme-bg-color, #ffffff);
+        color: var(--theme-text-color, #000000);
+        font-family: var(--theme-font-main, sans-serif);
     }
 
     .print-slide.image-full-screen-mode {
@@ -518,7 +545,8 @@ body.resizing-active {
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 14px;
+        font-size: var(--theme-footer-font-size, 14px);
+        color: var(--theme-footer-text-color, #888888);
         opacity: 0.6;
     }
 }
