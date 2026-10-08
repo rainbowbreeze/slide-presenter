@@ -39,6 +39,7 @@
       "template": "content_and_image",
       "data": {
         "title": "Smart Hydroponics",
+        "sentence": "Soil-free cultivation powered by modern sensors:",
         "bullets": [
           "Uses 90% less water than traditional soil farming",
           "Nutrient-rich water solutions delivered via automation",

@@ -109,6 +109,7 @@ The output must be a single JSON object containing an array of slides. Use the f
     *   `layout`: Vertically split.
     *   `image_position`: Defaults to `"right"` unless otherwise specified.
     *   `title`: Slide heading.
+    *   `sentence`: An optional introductory sentence displayed above the bullet points.
     *   `bullets`: An array of strings.
     *   `image_uri`: A URL or a path to a local image in the slides directory.
 *   **JSON Example:**
@@ -117,6 +118,7 @@ The output must be a single JSON object containing an array of slides. Use the f
       "template": "content_and_image",
       "data": {
         "title": "Global Reach",
+        "sentence": "Expanding our presence worldwide:",
         "bullets": ["Offices in 12 countries", "24/7 support"],
         "image_uri": "https://picsum.photos/800/800",
         "image_position": "right"
