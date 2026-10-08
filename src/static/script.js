@@ -140,6 +140,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Escapes special HTML characters in a raw string for safe fallback rendering.
+     * @param {string} str - Raw string to escape.
+     * @returns {string} HTML-escaped string.
+     */
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Helper to render a syntax-highlighted code block using Highlight.js when available.
+     * Supports `code` provided either as a multiline string or an array of line strings.
+     * @param {string|string[]} code - The code snippet to render.
+     * @param {string} [language] - Optional language identifier (e.g. 'python', 'javascript').
+     * @returns {string} HTML string for the code block container.
+     */
+    function renderCodeBlock(code, language) {
+        if (!code || (Array.isArray(code) && code.length === 0)) return '';
+        const rawCode = Array.isArray(code) ? code.join('\n') : String(code);
+        let highlighted = '';
+        let langClass = language ? `language-${escapeHtml(language)}` : '';
+
+        if (typeof hljs !== 'undefined') {
+            try {
+                if (language && hljs.getLanguage(language)) {
+                    highlighted = hljs.highlight(rawCode, { language }).value;
+                } else {
+                    const autoResult = hljs.highlightAuto(rawCode);
+                    highlighted = autoResult.value;
+                    if (!langClass && autoResult.language) {
+                        langClass = `language-${escapeHtml(autoResult.language)}`;
+                    }
+                }
+            } catch (e) {
+                console.warn('Highlight.js failed to highlight code block:', e);
+                highlighted = escapeHtml(rawCode);
+            }
+        } else {
+            highlighted = escapeHtml(rawCode);
+        }
+
+        return `
+            <div class="code-container">
+                <pre><code class="hljs ${langClass}">${highlighted}</code></pre>
+            </div>
+        `;
+    }
+
+    /**
      * Initializes or reloads the presentation by fetching slide data and the theme from the API.
      * Applies the theme and renders the current slide (clamped to valid bounds).
      */
@@ -321,6 +374,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 break;
             }
+
+            case 'title_and_code':
+                classList.push('title-and-code-slide');
+                html = `
+                    <h1>${parseInlineMarkdown(data.title)}</h1>
+                    ${renderSentence(data.sentence)}
+                    ${renderCodeBlock(data.code, data.language)}
+                `;
+                break;
 
             case 'image_full_screen':
                 classList.push('image-full-screen-content');

@@ -58,6 +58,23 @@
       }
     },
     {
+      "template": "title_and_code",
+      "data": {
+        "title": "Automated Moisture Check",
+        "sentence": "A simple Python loop to keep your balcony basil hydrated:",
+        "language": "python",
+        "code": [
+          "def check_soil_moisture(sensor_pin: int, threshold: float = 0.35) -> bool:",
+          "    moisture = read_capacitive_sensor(sensor_pin)",
+          "    if moisture < threshold:",
+          "        trigger_drip_pump(duration_sec=5)",
+          "        return True",
+          "    return False"
+        ],
+        "speaker_notes": "Walk through how a 10-line script on a microcontroller can automate watering."
+      }
+    },
+    {
       "template": "content_double",
       "data": {
         "title": "Indoor vs. Outdoor Challenges",

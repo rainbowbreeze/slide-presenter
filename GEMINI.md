@@ -10,7 +10,7 @@ The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
 -   Custom theming via a theme JSON file (defaulting to `theme.json`).
--   Support for 7 different slide templates: section titles, quotes, simple content (title, optional introductory sentence, and bullets), double column content (with optional introductory sentence per column), content with images (with optional introductory sentence), title and image, and full-screen images.
+-   Support for 8 different slide templates: section titles, quotes, simple content (title, optional introductory sentence, and bullets), double column content (with optional introductory sentence per column), content with images (with optional introductory sentence), title and image, title and code (with optional introductory sentence and syntax highlighting via Highlight.js), and full-screen images.
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area that preserves its split height across slide navigation.
 -   Keyboard and mouse navigation with URL `?slide=` query parameter synchronization.
 -   Dynamic reloading of slide content.
@@ -38,11 +38,11 @@ The application source code is located in the `src/` directory.
 
 ### Frontend
 
--   **`src/templates/index.html`:** The single HTML page that acts as the container for the presentation.
+-   **`src/templates/index.html`:** The single HTML page that acts as the container for the presentation, loading Marked.js and Highlight.js from CDNs.
 -   **`src/static/style.css`:** Provides the visual styling for the slides using CSS Custom Properties (`--theme-*`), flexbox layouts for the templates, speaker mode specific styles, print/PDF export styles, and resizable panel logic.
 -   **`src/static/script.js`:** The client-side logic that:
     1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint.
-    2.  Dynamically renders the slides based on their defined `template` type, supporting inline Markdown across all slide text fields.
+    2.  Dynamically renders the slides based on their defined `template` type, supporting inline Markdown across all slide text fields and syntax highlighting via Highlight.js for `title_and_code` slides.
     3.  Applies the theme from the theme JSON via CSS Custom Properties on `:root` and a shared background/asset resolution helper across main view, speaker previews, and print view.
     4.  Handles synchronization between the main view and the speaker notes panel via `BroadcastChannel` and keeps the URL `?slide=` parameter in sync via `history.replaceState`.
     5.  Implements the resizable preview area logic (preserving user-resized height across slide changes) and the presentation timer.

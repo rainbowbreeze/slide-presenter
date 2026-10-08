@@ -7,7 +7,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **Web-Based:** Runs a local Python web server. View your presentation in any modern web browser.
 -   **JSON-Based:** Slides are defined in a single JSON file (defaulting to `slides.json`).
 -   **Custom Theming:** Define fonts, colors, and a persistent footer using a theme JSON file (defaulting to `theme.json`). The footer is displayed globally and uses the presentation title as a fallback if not explicitly set.
--   **Slide Templates:** Supports 7 multiple layout templates including section titles, quotes, columns, and images.
+-   **Slide Templates:** Supports 8 layout templates including section titles, quotes, columns, images, and syntax-highlighted code blocks.
 -   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **PDF Export / Printing:** Press 'P' to prepare the entire slide deck for printing or saving as a PDF.
@@ -90,6 +90,8 @@ For a precise definition of the JSON schema for each slide type, please refer to
     *   Data fields: `title`, `image_uri`.
 7.  **`image_full_screen`**: An image that fills the entire slide without any text or footer.
     *   Data fields: `image_uri`.
+8.  **`title_and_code`**: A title with an optional introductory sentence and a syntax-highlighted code block.
+    *   Data fields: `title`, `sentence` (optional), `code` (string or array of line strings), `language` (optional, e.g. `"python"`, `"javascript"`).
 
 ### 2. Customize Your Theme
 
@@ -162,5 +164,8 @@ This project utilizes the following open-source libraries:
 *   **Marked.js**: A markdown parser and compiler written in JavaScript.
     *   *Author:* Troy Goode and contributors.
     *   *License:* MIT License.
+*   **Highlight.js**: A syntax highlighter written in JavaScript.
+    *   *Author:* Ivan Sagalaev and contributors.
+    *   *License:* BSD 3-Clause License.
 
 We extend our sincere gratitude to the developers and communities behind these fantastic projects for their invaluable contributions to the open-source ecosystem.
