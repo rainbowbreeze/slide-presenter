@@ -63,6 +63,7 @@ The output must be a single JSON object containing an array of slides. Use the f
 *   **Template ID:** `content_simple`
 *   **Structure:**
     *   `title`: The slide heading.
+    *   `sentence`: An optional introductory sentence displayed above the bullet points.
     *   `bullets`: An array of strings. (No limit on number of items).
 *   **JSON Example:**
     ```json
@@ -70,6 +71,7 @@ The output must be a single JSON object containing an array of slides. Use the f
       "template": "content_simple",
       "data": {
         "title": "Core Features",
+        "sentence": "Everything you need to collaborate securely.",
         "bullets": ["Real-time sync", "Encrypted storage", "Multi-user support"]
       }
     }

@@ -24,6 +24,7 @@
       "template": "content_simple",
       "data": {
         "title": "Why Urban Gardening Matters",
+        "sentence": "Key benefits of bringing nature back into the city:",
         "bullets": [
           "Reduction of urban heat island effect",
           "Zero-mile food production",
@@ -32,7 +33,7 @@
           "Efficient use of wasted vertical space"
         ],
         "speaker_notes": "Here are the main reasons why this matters:\n- The heat island effect is getting worse.\n- Show the graph from the 2023 study (mental note).\n- Talk about the vertical space in Tokyo."
-  }
+      }
     },
     {
       "template": "content_and_image",

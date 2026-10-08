@@ -201,8 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             case 'content_simple':
                 classList.push('content-simple-slide');
+                // Render the optional introductory sentence above the bullet points, supporting inline Markdown
+                const sentenceContent = data.sentence
+                    ? (typeof marked !== 'undefined' ? marked.parseInline(data.sentence) : data.sentence)
+                    : '';
                 html = `
                     <h1>${data.title || ''}</h1>
+                    ${sentenceContent ? `<div class="sentence">${sentenceContent}</div>` : ''}
                     ${renderBullets(data.bullets)}
                 `;
                 break;

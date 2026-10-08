@@ -58,6 +58,7 @@ Create a `slides.json` file. This file contains the metadata and an array of sli
       "template": "content_simple",
       "data": {
         "title": "Why Urban Gardening Matters",
+        "sentence": "Key benefits of bringing nature back into the city:",
         "bullets": [
           "Reduction of urban heat island effect",
           "Zero-mile food production",
@@ -79,8 +80,8 @@ For a precise definition of the JSON schema for each slide type, please refer to
     *   Data fields: `title`, `sentence` (optional).
 2.  **`quote_slide`**: A large centered quote.
     *   Data fields: `quote`, `attribution`.
-3.  **`content_simple`**: A title with a single list of bullets.
-    *   Data fields: `title`, `bullets` (array of strings).
+3.  **`content_simple`**: A title with an optional introductory sentence and a single list of bullets.
+    *   Data fields: `title`, `sentence` (optional), `bullets` (array of strings).
 4.  **`content_double`**: A title with two columns of bullets.
     *   Data fields: `title`, `column_left` (object with `sub_heading`, `bullets`), `column_right` (object with `sub_heading`, `bullets`).
 5.  **`content_and_image`**: A title with bullets on one side and an image on the other.
