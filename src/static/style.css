@@ -141,6 +141,12 @@ h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     padding-bottom: 0.2em;
 }
 
+.column .sentence {
+    font-size: 1.8em;
+    line-height: 1.4;
+    margin-bottom: 0.5em;
+}
+
 .column ul {
     font-size: 1.8em;
     line-height: 1.4;

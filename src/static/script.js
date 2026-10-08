@@ -160,6 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Helper to render an optional introductory sentence above bullets.
+     */
+    function renderSentence(sentence) {
+        if (!sentence) return '';
+        // If marked.js is available, we can parse inline markdown
+        let content = typeof marked !== 'undefined' ? marked.parseInline(sentence) : sentence;
+        return `<div class="sentence">${content}</div>`;
+    }
+
+    /**
      * Helper to render an array of bullets.
      */
     function renderBullets(bullets) {
@@ -201,13 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             case 'content_simple':
                 classList.push('content-simple-slide');
-                // Render the optional introductory sentence above the bullet points, supporting inline Markdown
-                const sentenceContent = data.sentence
-                    ? (typeof marked !== 'undefined' ? marked.parseInline(data.sentence) : data.sentence)
-                    : '';
                 html = `
                     <h1>${data.title || ''}</h1>
-                    ${sentenceContent ? `<div class="sentence">${sentenceContent}</div>` : ''}
+                    ${renderSentence(data.sentence)}
                     ${renderBullets(data.bullets)}
                 `;
                 break;
@@ -221,10 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="columns-container">
                         <div class="column">
                             ${leftCol.sub_heading ? `<h2>${leftCol.sub_heading}</h2>` : ''}
+                            ${renderSentence(leftCol.sentence)}
                             ${renderBullets(leftCol.bullets)}
                         </div>
                         <div class="column">
                             ${rightCol.sub_heading ? `<h2>${rightCol.sub_heading}</h2>` : ''}
+                            ${renderSentence(rightCol.sentence)}
                             ${renderBullets(rightCol.bullets)}
                         </div>
                     </div>

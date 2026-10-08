@@ -10,7 +10,7 @@ The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
 -   Custom theming via a theme JSON file (defaulting to `theme.json`).
--   Support for 7 different slide templates: section titles, quotes, simple content (title, optional introductory sentence, and bullets), double column content, content with images, title and image, and full-screen images.
+-   Support for 7 different slide templates: section titles, quotes, simple content (title, optional introductory sentence, and bullets), double column content (with optional introductory sentence per column), content with images, title and image, and full-screen images.
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   Keyboard and mouse navigation.
 -   Dynamic reloading of slide content.

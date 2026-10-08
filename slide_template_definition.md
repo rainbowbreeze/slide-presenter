@@ -81,8 +81,8 @@ The output must be a single JSON object containing an array of slides. Use the f
 *   **Template ID:** `content_double`
 *   **Structure:**
     *   `title`: The slide heading.
-    *   `column_left`: An object containing a `sub_heading` (string) and `bullets` (array).
-    *   `column_right`: An object containing a `sub_heading` (string) and `bullets` (array).
+    *   `column_left`: An object containing a `sub_heading` (string), an optional `sentence` (string) displayed above the bullet points, and `bullets` (array).
+    *   `column_right`: An object containing a `sub_heading` (string), an optional `sentence` (string) displayed above the bullet points, and `bullets` (array).
 *   **JSON Example:**
     ```json
     {
@@ -91,10 +91,12 @@ The output must be a single JSON object containing an array of slides. Use the f
         "title": "Pros vs Cons",
         "column_left": {
           "sub_heading": "Benefits",
+          "sentence": "Why teams love it:",
           "bullets": ["Cost effective", "Fast setup"]
         },
         "column_right": {
           "sub_heading": "Challenges",
+          "sentence": "What to keep in mind:",
           "bullets": ["Learning curve", "Internet dependency"]
         }
       }

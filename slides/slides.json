@@ -62,6 +62,7 @@
         "title": "Indoor vs. Outdoor Challenges",
         "column_left": {
           "sub_heading": "The Living Room Lab",
+          "sentence": "Growing inside your apartment:",
           "bullets": [
             "Limited space for large root systems",
             "Dependence on artificial lighting",
@@ -70,6 +71,7 @@
         },
         "column_right": {
           "sub_heading": "The Rooftop Wild",
+          "sentence": "Facing the elements outside:",
           "bullets": [
             "Wind exposure and structural weight limits",
             "Pest management in an open environment",
