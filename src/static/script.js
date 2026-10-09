@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const themeMappings = {
             '--theme-bg-color': theme['bg-color'],
             '--theme-text-color': theme['text-color'],
+            '--theme-link-color': theme['link-color'],
             '--theme-font-main': theme['font-main'],
             '--theme-text-font-size': theme['text-font-size'],
             '--theme-title-color': theme['title-color'],

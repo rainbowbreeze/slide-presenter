@@ -102,6 +102,7 @@ Create a `theme.json` file to customize the look and feel of your presentation.
   "font-main": "'Helvetica', sans-serif",
   "bg-color": "#FFFFFF",
   "text-color": "#000000",
+  "link-color": "#0066CC",
   "footer-text": "My Presentation",
   "footer-font-size": "14px",
   "footer-text-color": "#888888"

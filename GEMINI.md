@@ -9,7 +9,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool. It ru
 The core features include:
 -   A web-based interface for viewing presentations.
 -   JSON-based slide management utilizing explicit slide templates.
--   Custom theming via a theme JSON file (defaulting to `theme.json`).
+-   Custom theming via a theme JSON file (defaulting to `theme.json`), supporting fonts, sizes, background images, and customizable colors (`bg-color`, `text-color`, `title-color`, `link-color`, `footer-text-color`).
 -   Support for 8 different slide templates: section titles, quotes, simple content (title, optional introductory sentence, and bullets), double column content (with optional introductory sentence per column), content with images (with optional introductory sentence), title and image, title and code (with optional introductory sentence and syntax highlighting via Highlight.js), and full-screen images.
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area that preserves its split height across slide navigation.
 -   Keyboard and mouse navigation with URL `?slide=` query parameter synchronization.

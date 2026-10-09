@@ -2,6 +2,7 @@
     --theme-font-main: sans-serif;
     --theme-bg-color: #ffffff;
     --theme-text-color: #000000;
+    --theme-link-color: inherit;
     --theme-text-font-size: 16px;
     --theme-title-color: inherit;
     --theme-footer-font-size: 14px;
@@ -22,6 +23,11 @@ body, html {
 
 h1, h2, h3, h4, h5, h6, p, ul, li, div, span, blockquote {
     color: inherit;
+}
+
+a,
+a:visited {
+    color: var(--theme-link-color, inherit);
 }
 
 .slide-content h1,
