@@ -37,3 +37,6 @@ instance/
 # Temporary files
 *.tmp
 *.bak
+
+# Utility files
+resume-agent.sh

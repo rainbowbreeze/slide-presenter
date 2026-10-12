@@ -138,6 +138,107 @@ def resolve_path(provided_path: str, assets_dir: str) -> str:
     return provided_path
 
 
+def export_presentation_to_pdf(output_path: str) -> None:
+    """
+    Starts the Flask server on an ephemeral local port, renders the presentation
+    in headless Chromium via Playwright, waits for the print view and all slide/theme
+    assets to load and decode, and exports a 16:9 widescreen PDF to output_path.
+
+    Args:
+        output_path (str): Target file path for the generated PDF.
+
+    Raises:
+        RuntimeError: If Playwright fails to render or export the presentation.
+    """
+    from threading import Thread
+    from werkzeug.serving import make_server
+    from playwright.sync_api import sync_playwright
+
+    resolved_output: str = os.path.abspath(output_path)
+    parent_dir: str = os.path.dirname(resolved_output)
+    if parent_dir:
+        os.makedirs(parent_dir, exist_ok=True)
+
+    # Bind to port 0 so the OS assigns an available ephemeral localhost port
+    server = make_server('127.0.0.1', 0, app)
+    port: int = int(server.server_port)
+    server_thread: Thread = Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+
+    try:
+        url: str = f"http://127.0.0.1:{port}/"
+        print(f"Rendering slides from {url} to PDF...")
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1920, "height": 1080})
+            page.goto(url, wait_until="networkidle")
+
+            # Wait for #print-container to be populated with .print-slide items by preparePrintView()
+            page.wait_for_selector("#print-container .print-slide", state="attached", timeout=30000)
+
+            # Ensure web fonts, <img> elements, and CSS background-image assets in #print-container are decoded
+            page.evaluate("""async () => {
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+
+                const preloadUrl = (url) => new Promise((resolve) => {
+                    if (!url) return resolve();
+                    const img = new Image();
+                    img.onload = () => {
+                        if (typeof img.decode === 'function') {
+                            img.decode().catch(() => {}).finally(resolve);
+                        } else {
+                            resolve();
+                        }
+                    };
+                    img.onerror = () => resolve();
+                    img.src = url;
+                });
+
+                const imgs = Array.from(document.querySelectorAll('#print-container img'));
+                const imgPromises = imgs.map((img) => {
+                    if (img.complete && img.naturalWidth > 0) {
+                        return typeof img.decode === 'function' ? img.decode().catch(() => {}) : Promise.resolve();
+                    }
+                    return new Promise((resolve) => {
+                        img.addEventListener('load', () => {
+                            if (typeof img.decode === 'function') {
+                                img.decode().catch(() => {}).finally(resolve);
+                            } else {
+                                resolve();
+                            }
+                        }, { once: true });
+                        img.addEventListener('error', () => resolve(), { once: true });
+                    });
+                });
+
+                const bgUrls = new Set();
+                document.querySelectorAll('#print-container .print-slide, #print-container .image-side').forEach((el) => {
+                    const bg = window.getComputedStyle(el).backgroundImage;
+                    if (bg && bg !== 'none') {
+                        const match = bg.match(/url\\(["']?([^"')]+)["']?\\)/);
+                        if (match && match[1]) {
+                            bgUrls.add(match[1]);
+                        }
+                    }
+                });
+
+                await Promise.all([...imgPromises, ...Array.from(bgUrls).map(preloadUrl)]);
+            }""")
+
+            # Generate the 16:9 widescreen PDF respecting @media print and @page rules
+            page.pdf(
+                path=resolved_output,
+                print_background=True,
+                prefer_css_page_size=True,
+            )
+            browser.close()
+        print(f"Successfully exported PDF to: {resolved_output}")
+    finally:
+        server.shutdown()
+
+
 if __name__ == '__main__':
     # Initialize the argument parser for command-line options
     parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Run the SelfHosted Slide Presenter app.")
@@ -156,6 +257,10 @@ if __name__ == '__main__':
     parser.add_argument('--slides-dir', type=str,
                         help='Specify a directory to look for default slides and theme files (default: slides)',
                         default='slides')
+
+    # Add an argument to export the presentation directly to a PDF file and exit
+    parser.add_argument('--export-pdf', type=str, default=None, metavar='OUTPUT_PDF',
+                        help='Export the presentation as a 16:9 widescreen PDF to the specified file path and exit')
     
     args: argparse.Namespace = parser.parse_args()
 
@@ -186,5 +291,15 @@ if __name__ == '__main__':
     print(f"  Theme file:    {THEME_FILE}")
     print(f"  Assets dir:    {ASSETS_DIR}")
 
+    # If --export-pdf is specified, render the presentation headlessly to PDF and exit
+    if args.export_pdf:
+        try:
+            export_presentation_to_pdf(args.export_pdf)
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error exporting presentation to PDF: {e}")
+            sys.exit(1)
+
     # Start the Flask development server with debug mode enabled
     app.run(debug=True)
+

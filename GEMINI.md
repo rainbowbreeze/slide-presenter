@@ -14,6 +14,7 @@ The core features include:
 -   Synchronized Speaker Notes panel with a presentation timer, font size controls, and a resizable current/next slide preview area that preserves its split height across slide navigation.
 -   Keyboard and mouse navigation with URL `?slide=` query parameter synchronization.
 -   Dynamic reloading of slide content.
+-   Headless 16:9 (`1920x1080`) PDF export from the command line (`--export-pdf`) powered by Playwright Chromium, in addition to interactive browser print/PDF export (`P`).
 -   The presentation footer is displayed automatically based on theme and presentation metadata.
 
 ## Architecture
@@ -22,8 +23,8 @@ The application source code is located in the `src/` directory.
 
 ### Backend
 
--   **Framework:** Python with Flask.
--   **`src/app.py`:** The main application file. Default paths (`ASSETS_DIR`, `SLIDES_FILE`, `THEME_FILE`) are anchored to the project root. It contains three primary routes:
+-   **Framework:** Python with Flask (and Playwright for headless PDF generation).
+-   **`src/app.py`:** The main application file. Default paths (`ASSETS_DIR`, `SLIDES_FILE`, `THEME_FILE`) are anchored to the project root. It contains three primary routes and a headless PDF export helper (`export_presentation_to_pdf()`):
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
         1.  Reads and parses the configured theme and slides JSON files using UTF-8 encoding via `load_json_file()`.
@@ -34,6 +35,7 @@ The application source code is located in the `src/` directory.
     -   `--slides`: Specifies the slides JSON file (default: `slides.json`).
     -   `--theme`: Specifies the theme JSON file (default: `theme.json`).
     -   `--slides-dir`: Specifies a directory to look for default `slides.json` and `theme.json` files (default: `slides`).
+    -   `--export-pdf`: Exports the presentation as a 16:9 (`1920x1080`) widescreen PDF to the given file path using a temporary local Flask server and headless Playwright Chromium, then exits.
 -   **Content Directory:** The `slides/` directory is provided as an example containing a `slides.json` and `theme.json`.
 
 ### Frontend

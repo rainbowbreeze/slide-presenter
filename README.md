@@ -10,7 +10,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **Slide Templates:** Supports 8 layout templates including section titles, quotes, columns, images, and syntax-highlighted code blocks.
 -   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
--   **PDF Export / Printing:** Press 'P' to prepare the entire slide deck for printing or saving as a 16:9 widescreen PDF.
+-   **PDF Export / Printing:** Press 'P' in the browser to print or save as a 16:9 widescreen PDF, or run headlessly from the command line using `--export-pdf`.
 -   **Dynamic Reload:** Update your slide or theme file and press 'R' to reload both the main presentation and speaker notes windows simultaneously.
 
 ## Setup and Installation
@@ -23,9 +23,10 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
     source venv/bin/activate
     ```
 
-3.  **Dependencies:** The application uses the Flask web framework. Install it using pip:
+3.  **Dependencies:** The application uses the Flask web framework (and Playwright for headless PDF export). Install them using pip:
     ```bash
     pip install -r requirements.txt
+    playwright install chromium
     ```
 
 4.  **Directory Structure:** The application source code is in `src/`.
@@ -133,6 +134,10 @@ By default, the app looks for `slides.json` and `theme.json` under the `slides/`
     ```bash
     python src/app.py --slides-dir=my_content_folder
     ```
+-   `--export-pdf`: Export the presentation directly to a 16:9 (`1920x1080`) widescreen PDF file using headless Chromium and exit without keeping the server running.
+    ```bash
+    python src/app.py --slides-dir=my_content_folder --export-pdf=my_presentation.pdf
+    ```
 
 Open your web browser and navigate to `http://127.0.0.1:5000` to see your presentation.
 
@@ -163,6 +168,9 @@ This project utilizes the following open-source libraries:
 *   **Flask**: A micro web framework for Python.
     *   *Authors:* Armin Ronacher (creator) and the Flask Community.
     *   *License:* BSD License.
+*   **Playwright**: A framework for Web Testing and Automation, used for headless Chromium PDF export.
+    *   *Authors:* Microsoft and contributors.
+    *   *License:* Apache-2.0 License.
 *   **Marked.js**: A markdown parser and compiler written in JavaScript.
     *   *Author:* Troy Goode and contributors.
     *   *License:* MIT License.
