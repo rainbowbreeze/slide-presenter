@@ -263,6 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clamp currentSlide to valid bounds in case the deck was shortened or URL param is out of range
                 const validIndex = Math.min(Math.max(0, currentSlide), slides.length - 1);
                 renderSlide(validIndex, false);
+                // Populate the print view in the background so images start preloading and native Cmd/Ctrl+P works
+                preparePrintView();
             } else {
                 slideContainer.innerHTML = '<div class="slide-content"><h1>No slides found</h1></div>';
             }
@@ -606,18 +608,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders all slides into the print container to prepare for PDF export or printing.
+     * Preloads and decodes a single image URL so it is ready in the browser cache for printing.
+     * @param {string} url - The resolved image URL to preload.
+     * @returns {Promise<void>}
      */
-    function preparePrintView() {
+    function preloadImageUrl(url) {
+        if (!url) return Promise.resolve();
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                if (typeof img.decode === 'function') {
+                    img.decode().catch(() => {}).finally(resolve);
+                } else {
+                    resolve();
+                }
+            };
+            img.onerror = () => resolve();
+            img.src = url;
+        });
+    }
+
+    /**
+     * Renders all slides into the print container and preloads all slide/theme images
+     * so they are fully decoded before the browser generates the print preview or PDF.
+     * @returns {Promise<void>}
+     */
+    async function preparePrintView() {
         if (!printContainer) return;
 
         printContainer.innerHTML = '';
+        const imageUrlsToPreload = new Set();
+
+        if (theme['background-image']) {
+            imageUrlsToPreload.add(resolveAssetUrl(theme['background-image']));
+        }
 
         slides.forEach((slide) => {
             const slideDiv = document.createElement('div');
             slideDiv.className = 'print-slide';
 
             applySlideBackground(slideDiv, slide);
+
+            const data = slide.data || {};
+            if (slide.template === 'image_full_screen') {
+                imageUrlsToPreload.add(resolveAssetUrl(data.image_uri, 'https://picsum.photos/1920/1080'));
+            } else if (slide.template === 'content_and_image') {
+                imageUrlsToPreload.add(resolveAssetUrl(data.image_uri, 'https://picsum.photos/800/800'));
+            } else if (slide.template === 'title_and_image') {
+                imageUrlsToPreload.add(resolveAssetUrl(data.image_uri, 'https://picsum.photos/800/600'));
+            }
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'slide-content';
@@ -637,6 +676,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             printContainer.appendChild(slideDiv);
         });
+
+        // Wait for all <img> elements in #print-container and all background-image URLs to load and decode
+        const domImgPromises = Array.from(printContainer.querySelectorAll('img')).map((img) => {
+            if (img.complete && img.naturalWidth > 0) {
+                return typeof img.decode === 'function' ? img.decode().catch(() => {}) : Promise.resolve();
+            }
+            return new Promise((resolve) => {
+                img.addEventListener('load', () => {
+                    if (typeof img.decode === 'function') {
+                        img.decode().catch(() => {}).finally(resolve);
+                    } else {
+                        resolve();
+                    }
+                }, { once: true });
+                img.addEventListener('error', () => resolve(), { once: true });
+            });
+        });
+
+        const bgPreloadPromises = Array.from(imageUrlsToPreload).map(preloadImageUrl);
+        await Promise.all([...domImgPromises, ...bgPreloadPromises]);
     }
 
     /**
@@ -668,6 +727,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     window.addEventListener('resize', resizePreviews);
 
+    // Ensure print container is populated if the user prints via native browser menu / Cmd+P
+    window.addEventListener('beforeprint', () => {
+        if (printContainer && printContainer.children.length === 0 && slides.length > 0) {
+            preparePrintView();
+        }
+    });
+
     // Close help overlay when clicking its dark backdrop outside the help content box
     helpOverlay.addEventListener('click', (e) => {
         if (e.target === helpOverlay) {
@@ -675,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
         // Ignore shortcuts when modifier keys are held (e.g., Cmd/Ctrl+R, Cmd/Ctrl+P, Cmd/Ctrl+A)
         if (e.ctrlKey || e.metaKey || e.altKey) {
             return;
@@ -732,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 helpOverlay.classList.toggle('hidden');
                 break;
             case 'p':
-                preparePrintView();
+                await preparePrintView();
                 window.print();
                 break;
             case 'Escape':

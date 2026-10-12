@@ -46,7 +46,8 @@ The application source code is located in the `src/` directory.
     3.  Applies the theme from the theme JSON via CSS Custom Properties on `:root` and a shared background/asset resolution helper across main view, speaker previews, and print view.
     4.  Handles cross-window slide navigation and reload (`R`) synchronization between the main view and the speaker notes panel via `BroadcastChannel`, and keeps the URL `?slide=` parameter in sync via `history.replaceState`.
     5.  Constructs the speaker mode DOM layout once (`ensureSpeakerLayout`) and implements the resizable preview area logic (preserving and clamping user-resized height across slide changes and window resizes) and the presentation timer.
-    6.  Handles all user interactions, including modifier-safe, case-insensitive keyboard shortcuts, help overlay toggle/backdrop dismissal, and click-to-advance with guards for nested links and text selection.
+    6.  Pre-populates the print container on initialization and awaits full loading/decoding of all slide `<img>` and CSS `background-image` assets (`preparePrintView`) before invoking `window.print()`.
+    7.  Handles all user interactions, including modifier-safe, case-insensitive keyboard shortcuts, help overlay toggle/backdrop dismissal, and click-to-advance with guards for nested links and text selection.
 
 ## Coding Conventions
 
