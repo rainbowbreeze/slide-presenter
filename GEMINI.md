@@ -39,7 +39,7 @@ The application source code is located in the `src/` directory.
 ### Frontend
 
 -   **`src/templates/index.html`:** The single HTML page that acts as the container for the presentation, loading Marked.js and Highlight.js from CDNs.
--   **`src/static/style.css`:** Provides the visual styling for the slides using CSS Custom Properties (`--theme-*`), flexbox layouts for the templates, speaker mode specific styles, print/PDF export styles, and resizable panel logic.
+-   **`src/static/style.css`:** Provides the visual styling for the slides using CSS Custom Properties (`--theme-*`), flexbox layouts for the templates, speaker mode specific styles, 16:9 (`1920x1080`) print/PDF export styles, and resizable panel logic.
 -   **`src/static/script.js`:** The client-side logic that:
     1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint, surfacing descriptive backend JSON error messages if loading fails.
     2.  Dynamically renders the slides based on their defined `template` type, supporting inline Markdown across all slide text fields (opening Markdown links in a new tab), consistent HTML/CSS URL escaping, and syntax highlighting via Highlight.js for `title_and_code` slides.

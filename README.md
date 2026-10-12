@@ -10,7 +10,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **Slide Templates:** Supports 8 layout templates including section titles, quotes, columns, images, and syntax-highlighted code blocks.
 -   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
--   **PDF Export / Printing:** Press 'P' to prepare the entire slide deck for printing or saving as a PDF.
+-   **PDF Export / Printing:** Press 'P' to prepare the entire slide deck for printing or saving as a 16:9 widescreen PDF.
 -   **Dynamic Reload:** Update your slide or theme file and press 'R' to reload both the main presentation and speaker notes windows simultaneously.
 
 ## Setup and Installation
