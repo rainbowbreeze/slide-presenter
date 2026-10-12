@@ -11,7 +11,7 @@ SelfHosted Slide Presenter is a lightweight, file-based presentation tool that r
 -   **Speaker Notes:** Press 'S' to open a synchronized speaker panel with a presentation timer, font size controls, and a resizable current/next slide preview area.
 -   **Easy Navigation:** Control your presentation with keyboard shortcuts or your mouse.
 -   **PDF Export / Printing:** Press 'P' to prepare the entire slide deck for printing or saving as a PDF.
--   **Dynamic Reload:** Update your slide file and reload the presentation instantly with a keypress.
+-   **Dynamic Reload:** Update your slide or theme file and press 'R' to reload both the main presentation and speaker notes windows simultaneously.
 
 ## Setup and Installation
 
@@ -141,13 +141,14 @@ Open your web browser and navigate to `http://127.0.0.1:5000` to see your presen
 | Action             | Key                                | Mouse              |
 | ------------------ | ---------------------------------- | ------------------ |
 | **Next Slide**     | `Right Arrow` / `Down Arrow` /     | Left-Click         |
-|                    | `D` / `Space`                      |                    |
-| **Previous Slide** | `Left Arrow` / `Up Arrow` / `A`    |                    |
+|                    | `Page Down` / `D` / `Space`        |                    |
+| **Previous Slide** | `Left Arrow` / `Up Arrow` /        |                    |
+|                    | `Page Up` / `A`                    |                    |
 | **Jump to Slide**  | `G`                                | Right-Click        |
 | **Speaker Notes**  | `S`                                |                    |
 | **Reload Slides**  | `R`                                |                    |
 | **PDF Export / Print** | `P`                            |                    |
-| **Show/Hide Help** | `H` (Show) / `Esc` (Hide)          |                    |
+| **Show/Hide Help** | `H` (Toggle) / `Esc` (Hide)        |                    |
 
 ---
 

@@ -23,11 +23,11 @@ The application source code is located in the `src/` directory.
 ### Backend
 
 -   **Framework:** Python with Flask.
--   **`src/app.py`:** The main application file. It contains two primary routes:
+-   **`src/app.py`:** The main application file. Default paths (`ASSETS_DIR`, `SLIDES_FILE`, `THEME_FILE`) are anchored to the project root. It contains three primary routes:
     -   `/`: Serves the main `index.html` file.
     -   `/api/slides`: An API endpoint that:
-        1.  Reads and parses the configured slides JSON file to extract slide data and metadata.
-        2.  Reads the configured theme JSON for theming information.
+        1.  Reads and parses the configured theme and slides JSON files using UTF-8 encoding via `load_json_file()`.
+        2.  Returns `404` if either `theme.json` or `slides.json` is missing, and `500` with file-specific syntax details if JSON parsing fails.
         3.  Returns a JSON payload containing the structured slide data, metadata, and theme configuration.
     -   `/slides/<path:filename>`: Serves static assets (like local images) from the directory containing the slides file.
 -   Command-line Arguments:
@@ -41,12 +41,12 @@ The application source code is located in the `src/` directory.
 -   **`src/templates/index.html`:** The single HTML page that acts as the container for the presentation, loading Marked.js and Highlight.js from CDNs.
 -   **`src/static/style.css`:** Provides the visual styling for the slides using CSS Custom Properties (`--theme-*`), flexbox layouts for the templates, speaker mode specific styles, print/PDF export styles, and resizable panel logic.
 -   **`src/static/script.js`:** The client-side logic that:
-    1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint.
-    2.  Dynamically renders the slides based on their defined `template` type, supporting inline Markdown across all slide text fields and syntax highlighting via Highlight.js for `title_and_code` slides.
+    1.  Fetches slide, metadata, and theme data from the `/api/slides` endpoint, surfacing descriptive backend JSON error messages if loading fails.
+    2.  Dynamically renders the slides based on their defined `template` type, supporting inline Markdown across all slide text fields (opening Markdown links in a new tab), consistent HTML/CSS URL escaping, and syntax highlighting via Highlight.js for `title_and_code` slides.
     3.  Applies the theme from the theme JSON via CSS Custom Properties on `:root` and a shared background/asset resolution helper across main view, speaker previews, and print view.
-    4.  Handles synchronization between the main view and the speaker notes panel via `BroadcastChannel` and keeps the URL `?slide=` parameter in sync via `history.replaceState`.
-    5.  Implements the resizable preview area logic (preserving user-resized height across slide changes) and the presentation timer.
-    6.  Handles all user interactions, such as keyboard and mouse events for navigation and printing.
+    4.  Handles cross-window slide navigation and reload (`R`) synchronization between the main view and the speaker notes panel via `BroadcastChannel`, and keeps the URL `?slide=` parameter in sync via `history.replaceState`.
+    5.  Constructs the speaker mode DOM layout once (`ensureSpeakerLayout`) and implements the resizable preview area logic (preserving and clamping user-resized height across slide changes and window resizes) and the presentation timer.
+    6.  Handles all user interactions, including modifier-safe, case-insensitive keyboard shortcuts, help overlay toggle/backdrop dismissal, and click-to-advance with guards for nested links and text selection.
 
 ## Coding Conventions
 

@@ -17,11 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up cross-window synchronization channel
     const syncChannel = new BroadcastChannel('slide-sync');
     syncChannel.onmessage = (event) => {
-        if (event.data && event.data.type === 'SLIDE_CHANGE') {
+        if (!event.data) return;
+        if (event.data.type === 'SLIDE_CHANGE') {
             const newIndex = event.data.index;
             if (newIndex !== currentSlide) {
                 renderSlide(newIndex, false); // Pass false to prevent infinite broadcast loop
             }
+        } else if (event.data.type === 'RELOAD') {
+            initialize(false); // Reload slide and theme data without re-broadcasting
         }
     };
 
@@ -92,6 +95,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Escapes special HTML characters in a raw string for safe rendering in HTML text and attributes.
+     * @param {string} str - Raw string to escape.
+     * @returns {string} HTML-escaped string.
+     */
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
      * Resolves an image or asset URI to a full URL or the local `/slides/` static route.
      * @param {string} uri - The raw URI from the slide or theme JSON.
      * @param {string} fallback - Fallback URL if uri is empty.
@@ -100,20 +117,59 @@ document.addEventListener('DOMContentLoaded', () => {
     function resolveAssetUrl(uri, fallback = '') {
         const targetUri = uri || fallback;
         if (!targetUri) return '';
-        if (targetUri.startsWith('http://') || targetUri.startsWith('https://')) {
+        if (targetUri.startsWith('http://') || targetUri.startsWith('https://') || targetUri.startsWith('/slides/')) {
             return targetUri;
         }
-        return `/slides/${targetUri}`;
+        return `/slides/${targetUri.replace(/^\/+/, '')}`;
     }
 
     /**
-     * Parses inline Markdown if marked.js is loaded; returns an empty string for falsy values.
+     * Safely formats a URL string for use inside a CSS `url("...")` property.
+     * @param {string} url - The URL to wrap.
+     * @returns {string} CSS `url("...")` value.
+     */
+    function toCssUrl(url) {
+        const safeUrl = String(url).replace(/(["\\])/g, '\\$1');
+        return `url("${safeUrl}")`;
+    }
+
+    /**
+     * Ensures all anchor tags in a rendered HTML fragment open in a new tab safely.
+     * @param {string} html - Rendered HTML string.
+     * @returns {string} HTML string with `target="_blank" rel="noopener noreferrer"` on links.
+     */
+    function addExternalLinkAttrs(html) {
+        return html.replace(/<a\s+(?![^>]*\btarget=)/gi, '<a target="_blank" rel="noopener noreferrer" ');
+    }
+
+    /**
+     * Parses inline Markdown if marked.js is loaded; falls back to escaped HTML.
+     * All links are configured to open in a new tab.
      * @param {string} text - Raw text that may contain inline Markdown.
      * @returns {string} HTML string with inline Markdown rendered.
      */
     function parseInlineMarkdown(text) {
         if (!text) return '';
-        return typeof marked !== 'undefined' ? marked.parseInline(String(text)) : String(text);
+        const raw = String(text);
+        if (typeof marked !== 'undefined') {
+            return addExternalLinkAttrs(marked.parseInline(raw));
+        }
+        return escapeHtml(raw);
+    }
+
+    /**
+     * Parses block-level Markdown if marked.js is loaded; falls back to escaped HTML.
+     * All links are configured to open in a new tab.
+     * @param {string} text - Raw text that may contain block Markdown.
+     * @returns {string} HTML string with block Markdown rendered.
+     */
+    function parseBlockMarkdown(text) {
+        if (!text) return '';
+        const raw = String(text);
+        if (typeof marked !== 'undefined') {
+            return addExternalLinkAttrs(marked.parse(raw));
+        }
+        return `<p>${escapeHtml(raw)}</p>`;
     }
 
     /**
@@ -137,20 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(bullet => `<li>${parseInlineMarkdown(bullet)}</li>`)
             .join('');
         return `<ul>${itemsHtml}</ul>`;
-    }
-
-    /**
-     * Escapes special HTML characters in a raw string for safe fallback rendering.
-     * @param {string} str - Raw string to escape.
-     * @returns {string} HTML-escaped string.
-     */
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
     }
 
     /**
@@ -195,12 +237,19 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Initializes or reloads the presentation by fetching slide data and the theme from the API.
      * Applies the theme and renders the current slide (clamped to valid bounds).
+     * @param {boolean} [broadcastReload=false] - Whether to notify other synchronized windows to reload as well.
      */
-    async function initialize() {
+    async function initialize(broadcastReload = false) {
+        if (broadcastReload) {
+            syncChannel.postMessage({ type: 'RELOAD' });
+        }
+
         try {
             const response = await fetch('/api/slides');
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errData = await response.json().catch(() => null);
+                const errMsg = (errData && errData.error) || `HTTP error! status: ${response.status}`;
+                throw new Error(errMsg);
             }
 
             const data = await response.json();
@@ -223,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error initializing presentation:', error);
-            slideContainer.innerHTML = `<div class="slide-content"><h1>Error loading presentation</h1><p>${error.message}</p></div>`;
+            slideContainer.innerHTML = `<div class="slide-content"><h1>Error loading presentation</h1><p>${escapeHtml(error.message)}</p></div>`;
         }
     }
 
@@ -271,14 +320,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (slide.template === 'image_full_screen') {
             const fsUrl = resolveAssetUrl(data.image_uri, 'https://picsum.photos/1920/1080');
             targetEl.classList.add('image-full-screen-mode');
-            targetEl.style.backgroundImage = `url('${fsUrl}')`;
+            targetEl.style.backgroundImage = toCssUrl(fsUrl);
             targetEl.style.backgroundSize = 'contain';
             targetEl.style.backgroundPosition = 'center center';
             targetEl.style.backgroundRepeat = 'no-repeat';
         } else if (theme['background-image']) {
             const bgUrl = resolveAssetUrl(theme['background-image']);
             targetEl.classList.remove('image-full-screen-mode');
-            targetEl.style.backgroundImage = `url('${bgUrl}')`;
+            targetEl.style.backgroundImage = toCssUrl(bgUrl);
             targetEl.style.backgroundSize = 'cover';
             targetEl.style.backgroundPosition = 'center center';
             targetEl.style.backgroundRepeat = 'no-repeat';
@@ -350,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 classList.push('content-and-image-slide');
                 const imagePosClass = data.image_position === 'left' ? 'image-left' : '';
                 const imageUrl = resolveAssetUrl(data.image_uri, 'https://picsum.photos/800/800');
+                const safeCssUrl = escapeHtml(toCssUrl(imageUrl));
                 html = `
                     <div class="content-image-container ${imagePosClass}">
                         <div class="text-side">
@@ -357,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${renderSentence(data.sentence)}
                             ${renderBullets(data.bullets)}
                         </div>
-                        <div class="image-side" style="background-image: url('${imageUrl}');">
+                        <div class="image-side" style="background-image: ${safeCssUrl};">
                         </div>
                     </div>
                 `;
@@ -370,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 html = `
                     <h1>${parseInlineMarkdown(data.title)}</h1>
                     <div class="centered-image-container">
-                        <img src="${tiUrl}" alt="${data.title || 'Slide Image'}" />
+                        <img src="${escapeHtml(tiUrl)}" alt="${escapeHtml(data.title || 'Slide Image')}" />
                     </div>
                 `;
                 break;
@@ -390,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
 
             default:
-                html = `<h1>Unknown template: ${slide.template}</h1>`;
+                html = `<h1>Unknown template: ${escapeHtml(slide.template)}</h1>`;
                 break;
         }
 
@@ -399,10 +449,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Dynamically scales the speaker mode mini-previews to fit their containers
-     * while preserving a 16:9 (1920x1080) reference aspect ratio.
+     * while preserving a 16:9 (1920x1080) reference aspect ratio, and keeps any custom
+     * notes area height clamped within the current window height.
      */
     function resizePreviews() {
         if (!isSpeakerMode) return;
+
+        if (speakerNotesHeight !== null) {
+            const notesArea = document.querySelector('.speaker-notes-area');
+            if (notesArea) {
+                const maxAllowed = Math.max(50, window.innerHeight - 150);
+                speakerNotesHeight = Math.min(Math.max(50, speakerNotesHeight), maxAllowed);
+                notesArea.style.flex = 'none';
+                notesArea.style.height = `${speakerNotesHeight}px`;
+            }
+        }
 
         const containers = document.querySelectorAll('.preview-container');
         containers.forEach(container => {
@@ -431,6 +492,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Ensures the speaker mode DOM skeleton is constructed once inside `#slide-container`
+     * so navigating between slides only updates the dynamic sub-elements.
+     */
+    function ensureSpeakerLayout() {
+        if (slideContainer.querySelector('.speaker-notes-container')) {
+            return;
+        }
+
+        slideContainer.innerHTML = '';
+        slideContainer.classList.remove('image-full-screen-mode');
+        slideContainer.style.backgroundImage = 'none';
+        footer.style.display = 'none';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'slide-content speaker-notes-container';
+
+        const notesHeightStyle = speakerNotesHeight !== null
+            ? `flex: none; height: ${speakerNotesHeight}px;`
+            : '';
+
+        contentDiv.innerHTML = `
+            <div class="speaker-notes-area" style="${notesHeightStyle}">
+                <div class="speaker-meta"></div>
+                <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em"></div>
+            </div>
+            <div class="speaker-resizer"></div>
+            <div class="speaker-preview-area">
+                <div class="preview-box">
+                    <div class="preview-label">Current</div>
+                    <div class="preview-container" id="preview-current"></div>
+                </div>
+                <div class="preview-box">
+                    <div class="preview-label">Next</div>
+                    <div class="preview-container" id="preview-next"></div>
+                </div>
+            </div>
+        `;
+        slideContainer.appendChild(contentDiv);
+        setupResizer();
+    }
+
+    /**
      * Renders a specific slide based on its index in the slides array.
      * @param {number} index - The index of the slide to render.
      * @param {boolean} broadcast - Whether to broadcast this slide change to other synchronized windows.
@@ -450,64 +553,47 @@ document.addEventListener('DOMContentLoaded', () => {
             syncChannel.postMessage({ type: 'SLIDE_CHANGE', index: currentSlide });
         }
 
-        // Clear previous slide content
-        slideContainer.innerHTML = '';
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'slide-content';
-
         if (isSpeakerMode) {
-            slideContainer.classList.remove('image-full-screen-mode');
-            slideContainer.style.backgroundImage = 'none';
-            footer.style.display = 'none';
-            contentDiv.classList.add('speaker-notes-container');
+            ensureSpeakerLayout();
 
-            const notesHeightStyle = speakerNotesHeight !== null
-                ? `flex: none; height: ${speakerNotesHeight}px;`
-                : '';
-
-            contentDiv.innerHTML = `
-                <div class="speaker-notes-area" style="${notesHeightStyle}">
-                    <div class="speaker-meta">Slide ${index + 1} of ${slides.length}</div>
-                    <div class="speaker-notes-content" style="font-size: ${speakerFontSize}em"></div>
-                </div>
-                <div class="speaker-resizer"></div>
-                <div class="speaker-preview-area">
-                    <div class="preview-box">
-                        <div class="preview-label">Current</div>
-                        <div class="preview-container" id="preview-current"></div>
-                    </div>
-                    <div class="preview-box">
-                        <div class="preview-label">Next</div>
-                        <div class="preview-container" id="preview-next"></div>
-                    </div>
-                </div>
-            `;
-            slideContainer.appendChild(contentDiv);
+            const metaEl = slideContainer.querySelector('.speaker-meta');
+            if (metaEl) {
+                metaEl.textContent = `Slide ${index + 1} of ${slides.length}`;
+            }
 
             // Populate speaker notes
             const notesContent = data.speaker_notes || '';
             const notesHtml = notesContent
-                ? (typeof marked !== 'undefined' ? marked.parse(notesContent) : notesContent)
+                ? parseBlockMarkdown(notesContent)
                 : '<p><em>No notes for this slide.</em></p>';
 
-            const notesContentEl = contentDiv.querySelector('.speaker-notes-content');
+            const notesContentEl = slideContainer.querySelector('.speaker-notes-content');
             if (notesContentEl) {
+                notesContentEl.style.fontSize = `${speakerFontSize}em`;
                 notesContentEl.innerHTML = notesHtml;
             }
 
             // Populate current and next slide mini-previews
-            renderMiniPreview(index, document.getElementById('preview-current'));
+            const currentPreviewEl = document.getElementById('preview-current');
+            const nextPreviewEl = document.getElementById('preview-next');
+            renderMiniPreview(index, currentPreviewEl);
             if (index + 1 < slides.length) {
-                renderMiniPreview(index + 1, document.getElementById('preview-next'));
-            } else {
-                document.getElementById('preview-next').innerHTML = '<div class="end-of-presentation-preview">End of Presentation</div>';
+                renderMiniPreview(index + 1, nextPreviewEl);
+            } else if (nextPreviewEl) {
+                nextPreviewEl.classList.remove('image-full-screen-mode');
+                nextPreviewEl.style.backgroundImage = 'none';
+                nextPreviewEl.innerHTML = '<div class="end-of-presentation-preview">End of Presentation</div>';
             }
 
-            setupResizer();
             setTimeout(resizePreviews, 0);
             return;
         }
+
+        // Clear previous slide content in normal presentation mode
+        slideContainer.innerHTML = '';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'slide-content';
 
         // Normal presentation mode
         applySlideBackground(slideContainer, slide);
@@ -582,29 +668,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     window.addEventListener('resize', resizePreviews);
 
+    // Close help overlay when clicking its dark backdrop outside the help content box
+    helpOverlay.addEventListener('click', (e) => {
+        if (e.target === helpOverlay) {
+            helpOverlay.classList.add('hidden');
+        }
+    });
+
     document.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        // Ignore shortcuts when modifier keys are held (e.g., Cmd/Ctrl+R, Cmd/Ctrl+P, Cmd/Ctrl+A)
+        if (e.ctrlKey || e.metaKey || e.altKey) {
             return;
         }
-        switch (e.key) {
+
+        if (
+            e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA' ||
+            e.target.isContentEditable
+        ) {
+            return;
+        }
+
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        const isHelpOpen = !helpOverlay.classList.contains('hidden');
+
+        // When the help overlay is visible, block background navigation and only allow closing it
+        if (isHelpOpen) {
+            if (key === 'Escape' || key === 'h') {
+                e.preventDefault();
+                helpOverlay.classList.add('hidden');
+            }
+            return;
+        }
+
+        switch (key) {
             case 'ArrowRight':
             case 'ArrowDown':
             case 'PageDown':
             case 'd':
             case ' ':
+                e.preventDefault();
                 navigate(1);
                 break;
             case 'ArrowLeft':
             case 'ArrowUp':
             case 'PageUp':
             case 'a':
+                e.preventDefault();
                 navigate(-1);
                 break;
             case 'g':
                 jumpToSlide();
                 break;
             case 'r':
-                initialize();
+                initialize(true);
                 break;
             case 's':
                 if (!isSpeakerMode) {
@@ -612,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'h':
-                helpOverlay.classList.remove('hidden');
+                helpOverlay.classList.toggle('hidden');
                 break;
             case 'p':
                 preparePrintView();
@@ -626,13 +743,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', (e) => {
         if (blockClick) return; // Prevent accidental navigation immediately after resizing
+        if (!helpOverlay.classList.contains('hidden')) return; // Block background clicks while help is open
+
+        // Do not advance slides if the user just finished selecting text (e.g. copying code or notes)
+        const selection = window.getSelection ? window.getSelection() : null;
+        if (selection && selection.toString().trim().length > 0) {
+            return;
+        }
 
         const topBar = document.querySelector('.speaker-top-bar');
         const resizer = document.querySelector('.speaker-resizer');
         const previewArea = document.querySelector('.speaker-preview-area');
 
         if (
-            e.target.tagName === 'A' ||
+            e.target.closest('a') ||
             helpOverlay.contains(e.target) ||
             (topBar && topBar.contains(e.target)) ||
             (resizer && resizer.contains(e.target)) ||
@@ -654,6 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('contextmenu', (e) => {
+        if (!helpOverlay.classList.contains('hidden')) return;
         e.preventDefault();
         jumpToSlide();
     });

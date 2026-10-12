@@ -1,17 +1,55 @@
 import argparse
-import os
 import json
+import os
+import sys
 from typing import Any
 from flask import Flask, render_template, jsonify, send_from_directory
 from flask.wrappers import Response
 
 app: Flask = Flask(__name__)
 
+# Base project directory (parent of src/) used to anchor default paths
+PROJECT_ROOT: str = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # Global variables to store paths to the slides file, theme file, and assets directory.
-# These are initialized during application startup based on command-line arguments.
-SLIDES_FILE: str = 'slides.json'
-THEME_FILE: str = 'theme.json'
-ASSETS_DIR: str = 'slides'
+# Initialized to project-root defaults so running via `flask run` or `python src/app.py` works consistently.
+ASSETS_DIR: str = os.path.join(PROJECT_ROOT, 'slides')
+SLIDES_FILE: str = os.path.join(ASSETS_DIR, 'slides.json')
+THEME_FILE: str = os.path.join(ASSETS_DIR, 'theme.json')
+
+
+def load_json_file(file_path: str, label: str) -> dict[str, Any]:
+    """
+    Reads and parses a JSON file using UTF-8 encoding.
+
+    Args:
+        file_path (str): Absolute path to the JSON file.
+        label (str): Human-readable label for error messages (e.g., 'Theme file', 'Slides file').
+
+    Returns:
+        dict[str, Any]: Parsed JSON object.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file contains invalid JSON syntax or is not a JSON object.
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"{label} '{file_path}' not found.")
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data: Any = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Invalid JSON in {label.lower()} '{os.path.basename(file_path)}' "
+            f"(line {e.lineno}, column {e.colno}): {e.msg}"
+        ) from e
+
+    if not isinstance(data, dict):
+        raise ValueError(f"{label} '{os.path.basename(file_path)}' must contain a top-level JSON object.")
+
+    return data
+
 
 @app.route('/')
 def index() -> str:
@@ -26,6 +64,7 @@ def index() -> str:
     """
     return render_template('index.html')
 
+
 @app.route('/api/slides')
 def get_slides() -> Response | tuple[Response, int]:
     """
@@ -37,37 +76,30 @@ def get_slides() -> Response | tuple[Response, int]:
     
     Returns:
         Response | tuple[Response, int]: A JSON response containing the 'theme', 'slides', 
-                                         and 'metadata'. In case of an error, returns a JSON 
-                                         error message with a 500 status code.
+                                         and 'metadata'. Returns 404 if a required file is
+                                         missing, or 500 if a file cannot be parsed or read.
     """
-    slides: list[dict[str, Any]] = []
-    theme: dict[str, Any] = {}
-    metadata: dict[str, Any] = {}
-
     try:
-        # Load the presentation theme from the configured theme file
-        if os.path.exists(THEME_FILE):
-            with open(THEME_FILE, 'r') as f:
-                theme = json.load(f)
+        theme: dict[str, Any] = load_json_file(THEME_FILE, "Theme file")
+        presentation_data: dict[str, Any] = load_json_file(SLIDES_FILE, "Slides file")
 
-        # Load the presentation data from the configured slides file
-        if os.path.exists(SLIDES_FILE):
-            with open(SLIDES_FILE, 'r') as f:
-                presentation_data = json.load(f)
-                
-            slides = presentation_data.get('slides', [])
-            metadata = presentation_data.get('presentation_metadata', {})
-        else:
-            print(f"Error: Slides file '{SLIDES_FILE}' not found.")
-            return jsonify({"error": f"Slides file '{SLIDES_FILE}' not found."}), 404
+        slides: list[dict[str, Any]] = presentation_data.get('slides', [])
+        metadata: dict[str, Any] = presentation_data.get('presentation_metadata', {})
 
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        print(f"Error parsing JSON: {e}")
+        return jsonify({"error": str(e)}), 500
     except Exception as e:
-        # Handle exceptions gracefully and return a 500 Internal Server Error
+        # Handle unexpected I/O or runtime exceptions gracefully
         print(f"Error reading slides or theme: {e}")
         return jsonify({"error": str(e)}), 500
 
     # Return the aggregated slide data, metadata, and theme configuration
     return jsonify({"theme": theme, "slides": slides, "metadata": metadata})
+
 
 @app.route('/slides/<path:filename>')
 def serve_slide_asset(filename: str) -> Response:
@@ -84,6 +116,7 @@ def serve_slide_asset(filename: str) -> Response:
         Response: The static file served from the directory.
     """
     return send_from_directory(ASSETS_DIR, filename)
+
 
 def resolve_path(provided_path: str, assets_dir: str) -> str:
     """
@@ -103,6 +136,7 @@ def resolve_path(provided_path: str, assets_dir: str) -> str:
     if os.path.dirname(provided_path) == '':
         return os.path.join(assets_dir, provided_path)
     return provided_path
+
 
 if __name__ == '__main__':
     # Initialize the argument parser for command-line options
@@ -135,19 +169,19 @@ if __name__ == '__main__':
     # Verify that the ASSETS_DIR actually exists
     if not os.path.isdir(ASSETS_DIR):
         print(f"Error: Specified assets directory '{ASSETS_DIR}' does not exist.")
-        exit(1)
+        sys.exit(1)
 
     # Verify that the SLIDES_FILE exists
     if not os.path.isfile(SLIDES_FILE):
         print(f"Error: Slides file '{SLIDES_FILE}' does not exist.")
-        exit(1)
+        sys.exit(1)
         
     # Verify that the THEME_FILE exists
     if not os.path.isfile(THEME_FILE):
         print(f"Error: Theme file '{THEME_FILE}' does not exist.")
-        exit(1)
+        sys.exit(1)
 
-    print(f"Starting app with:")
+    print("Starting app with:")
     print(f"  Slides file:   {SLIDES_FILE}")
     print(f"  Theme file:    {THEME_FILE}")
     print(f"  Assets dir:    {ASSETS_DIR}")
